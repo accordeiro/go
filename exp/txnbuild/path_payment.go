@@ -62,8 +62,9 @@ func (pp *PathPayment) BuildXDR() (xdr.Operation, error) {
 
 	// Set XDR path
 	var xdrPath []xdr.Asset
+	var xdrPathAsset xdr.Asset
 	for _, asset := range pp.Path {
-		xdrPathAsset, err := asset.ToXDR()
+		xdrPathAsset, err = asset.ToXDR()
 		if err != nil {
 			return xdr.Operation{}, errors.Wrap(err, "Failed to set asset type")
 		}
