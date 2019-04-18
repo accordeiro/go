@@ -1,0 +1,28 @@
+type Market {
+	baseAssetID: Asset!
+	counterAssetID: Asset!
+	baseVolume: Float!
+	counterVolume: Float!
+	tradeCount: Int!
+	open: Float!
+	low: Float!
+	high: Float!
+	change: Float!
+	close: Float!
+	closeTime: Timestamp
+	since: Timestamp
+}
+
+type AggregatedMarket {
+	tradePair: String!
+	baseVolume: Float!
+	counterVolume: Float!
+	tradeCount: Int!
+	open: Float!
+	low: Float!
+	high: Float!
+	change: Float!
+	close: Float!
+	closeTime: Timestamp
+	since: Timestamp
+}

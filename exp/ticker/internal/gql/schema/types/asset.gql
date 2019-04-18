@@ -1,0 +1,26 @@
+type Asset {
+	code: String!
+	issuerAccount: String!
+	type: String!
+	numAccounts: Int!
+	authRequired: Boolean!
+	authRevocable: Boolean!
+	amount: Float!
+	assetControlledByDomain: Boolean!
+	anchorAssetCode: String!
+	anchorAssetType: String!
+	isAssetAnchored: Boolean!
+	displayDecimals: Int!
+	name: String!
+	desc: String!
+	conditions: String!
+	fixedNumber: Int!
+	maxNumber: Int!
+	isUnlimited: Boolean!
+	redemptionInstructions: String!
+	collateralAddresses: String!
+	collateralAddressSignatures: String!
+	countries: String!
+	status: String!
+	issuerID: Int!
+}

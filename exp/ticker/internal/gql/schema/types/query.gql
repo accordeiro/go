@@ -1,0 +1,23 @@
+type Query {
+	# retrieve all validated assets on the Stellar network.
+	assets: [Asset]!
+
+	# retrieve trade stats from the last <numHoursAgo> hours
+	# (default = 24 hours). optionally provide counter and
+	# base asset info for filtering.
+	markets(
+		baseAssetCode: String
+		baseAssetIssuer: String
+		counterAssetCode: String
+		counterAssetIssuer: String
+		numHoursAgo: Int = 24
+	): [Market]!
+
+	# retrieve aggregated trade stats for the last <numHoursAgo>
+	# hours. optionally provide the name of the trade pair (e.g.
+	# XLM_BTC) for filtering results.
+	ticker(
+		numHoursAgo: Int = 24,
+		pairName: String
+	): [AggregatedMarket]!
+}
