@@ -33,13 +33,13 @@ type Asset struct {
 	ValidationError             string    `db:"validation_error"`
 	LastValid                   time.Time `db:"last_valid"`
 	LastChecked                 time.Time `db:"last_checked"`
-	DisplayDecimals             int       `db:"display_decimals"`
+	DisplayDecimals             int32     `db:"display_decimals"`
 	Name                        string    `db:"name"`
 	Desc                        string    `db:"description"`
 	Conditions                  string    `db:"conditions"`
 	IsAssetAnchored             bool      `db:"is_asset_anchored"`
-	FixedNumber                 int       `db:"fixed_number"`
-	MaxNumber                   int       `db:"max_number"`
+	FixedNumber                 int32     `db:"fixed_number"`
+	MaxNumber                   int32     `db:"max_number"`
 	IsUnlimited                 bool      `db:"is_unlimited"`
 	RedemptionInstructions      string    `db:"redemption_instructions"`
 	CollateralAddresses         string    `db:"collateral_addresses"`

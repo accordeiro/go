@@ -31,12 +31,12 @@ type TOMLCurrency struct {
 	IsAssetAnchored             bool     `toml:"is_asset_anchored"`
 	AnchorAsset                 string   `toml:"anchor_asset"`
 	AnchorAssetType             string   `toml:"anchor_asset_type"`
-	DisplayDecimals             int      `toml:"display_decimals"`
+	DisplayDecimals             int32    `toml:"display_decimals"`
 	Name                        string   `toml:"name"`
 	Desc                        string   `toml:"desc"`
 	Conditions                  string   `toml:"conditions"`
-	FixedNumber                 int      `toml:"fixed_number"`
-	MaxNumber                   int      `toml:"max_number"`
+	FixedNumber                 int32    `toml:"fixed_number"`
+	MaxNumber                   int32    `toml:"max_number"`
 	IsUnlimited                 bool     `toml:"is_unlimited"`
 	RedemptionInstructions      string   `toml:"redemption_instructions"`
 	CollateralAddresses         []string `toml:"collateral_addresses"`
@@ -76,13 +76,13 @@ type FinalAsset struct {
 	LastValid                   time.Time  `json:"-"`
 	LastChecked                 time.Time  `json:"-"`
 	IsTrash                     bool       `json:"-"`
-	DisplayDecimals             int        `json:"display_decimals"`
+	DisplayDecimals             int32      `json:"display_decimals"`
 	Name                        string     `json:"name"`
 	Desc                        string     `json:"desc"`
 	Conditions                  string     `json:"conditions"`
 	IsAssetAnchored             bool       `json:"is_asset_anchored"`
-	FixedNumber                 int        `json:"fixed_number"`
-	MaxNumber                   int        `json:"max_number"`
+	FixedNumber                 int32      `json:"fixed_number"`
+	MaxNumber                   int32      `json:"max_number"`
 	IsUnlimited                 bool       `json:"is_unlimited"`
 	RedemptionInstructions      string     `json:"redemption_instructions"`
 	CollateralAddresses         []string   `json:"collateral_addresses"`
