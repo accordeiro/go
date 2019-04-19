@@ -1,10 +1,10 @@
 package gql
 
-func (_ *resolver) Assets() []*Asset {
+func (_ *resolver) Assets() []*asset {
 	return nil
 }
 
-func (_ *resolver) Issuers() []*Issuer {
+func (_ *resolver) Issuers() []*issuer {
 	return nil
 }
 
@@ -16,7 +16,7 @@ func (_ *resolver) Markets(
 		CounterAssetIssuer *string
 		NumHoursAgo        *int32
 	},
-) []*PartialMarket {
+) []*partialMarket {
 	return nil
 }
 
@@ -25,6 +25,6 @@ func (_ *resolver) Ticker(
 		PairName    *string
 		NumHoursAgo *int32
 	},
-) []*PartialAggregatedMarket {
+) []*partialAggregatedMarket {
 	return nil
 }

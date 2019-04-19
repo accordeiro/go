@@ -10,13 +10,13 @@ import (
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 )
 
-type Asset tickerdb.Asset
+type asset tickerdb.Asset
 
-type Issuer tickerdb.Issuer
+type issuer tickerdb.Issuer
 
 // PartialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
-type PartialMarket struct {
+type partialMarket struct {
 	BaseAssetID    int32
 	CounterAssetID int32
 	BaseVolume     float64
@@ -33,7 +33,7 @@ type PartialMarket struct {
 
 // PartialAggregatedMarket represents the aggregated market data for
 // a generic trade pair since <Since>
-type PartialAggregatedMarket struct {
+type partialAggregatedMarket struct {
 	TradePair     string
 	BaseVolume    float64
 	CounterVolume float64
