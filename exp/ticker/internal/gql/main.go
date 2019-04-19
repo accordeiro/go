@@ -41,6 +41,7 @@ type asset struct {
 // PartialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
 type partialMarket struct {
+	TradePair      string
 	BaseAssetID    int32
 	CounterAssetID int32
 	BaseVolume     float64

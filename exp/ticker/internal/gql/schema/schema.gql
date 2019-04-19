@@ -60,6 +60,7 @@ type Asset {
 }
 
 type Market {
+	tradePair: String!
 	baseAssetID: Int!
 	counterAssetID: Int!
 	baseVolume: Float!

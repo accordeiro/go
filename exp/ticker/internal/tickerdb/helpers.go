@@ -69,3 +69,22 @@ func generatePlaceholders(fields []interface{}) (placeholder string) {
 	}
 	return
 }
+
+type optionalVar struct {
+	varName string
+	varVal  *string
+}
+
+func generateWhereClause(optVars []optionalVar) string {
+	var out string
+	for _, ov := range optVars {
+		if ov.varVal != nil {
+			if out == "" {
+				out = fmt.Sprintf("WHERE %s = '%s'", ov.varName, *ov.varVal)
+			} else {
+				out += fmt.Sprintf(" AND %s = '%s'", ov.varName, *ov.varVal)
+			}
+		}
+	}
+	return out
+}

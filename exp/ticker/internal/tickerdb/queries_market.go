@@ -1,7 +1,35 @@
 package tickerdb
 
+import (
+	"fmt"
+	"strings"
+)
+
 func (s *TickerSession) RetrieveMarketData() (markets []Market, err error) {
 	err = s.SelectRaw(&markets, marketQuery)
+	return
+}
+
+func (s *TickerSession) RetrievePartialMarkets(
+	baseAssetCode *string,
+	baseAssetIssuer *string,
+	counterAssetCode *string,
+	counterAssetIssuer *string,
+	numHoursAgo int,
+) (partialMkts []PartialMarket, err error) {
+	where := generateWhereClause([]optionalVar{
+		optionalVar{"t1.base_asset_code", baseAssetCode},
+		optionalVar{"t2.base_asset_issuer", baseAssetIssuer},
+		optionalVar{"t1.counter_asset_code", counterAssetCode},
+		optionalVar{"t1.counter_asset_issuer", counterAssetIssuer},
+	})
+
+	q := strings.Replace(partialMarketQuery, "__WHERECLAUSE__", where, -1)
+	q = strings.Replace(q, "__NUMHOURSAGO__", fmt.Sprintf("%d", numHoursAgo), -1)
+
+	fmt.Println(q)
+
+	err = s.SelectRaw(&partialMkts, q)
 	return
 }
 
@@ -113,5 +141,83 @@ LEFT JOIN (
 	ORDER BY trade_pair_name, t.ledger_close_time ASC
 
 ) t5 ON t4.trade_pair_name = t5.trade_pair_name
+ORDER BY trade_pair_name;
+`
+
+var partialMarketQuery = `
+SELECT
+	t1.trade_pair_name,
+	t1.base_asset_id,
+	t1.counter_asset_id,
+	base_volume,
+	counter_volume,
+	trade_count,
+	highest_price,
+	lowest_price,
+	(last_price - open_price) as price_change,
+	open_price,
+	last_price,
+	close_time
+FROM (
+	-- All trades between valid assets in the last period aggregated:
+	SELECT
+		bAsset.code as base_asset_code,
+		bAsset.issuer_account as base_asset_issuer,
+		cAsset.code as counter_asset_code,
+		cAsset.issuer_account as counter_asset_issuer,
+		bAsset.id as base_asset_id,
+		cAsset.id as counter_asset_id,
+		concat(bAsset.code, ':', bAsset.issuer_account, ' / ', cAsset.code, ':', cAsset.issuer_account) as trade_pair_name,
+		sum(t.base_amount) as base_volume,
+		sum(t.counter_amount) as counter_volume,
+		max(t.price) as highest_price,
+		min(t.price) as lowest_price,
+		count(t.base_amount) as trade_count
+	FROM trades as t
+		JOIN assets as bAsset
+		ON t.base_asset_id = bAsset.id
+		JOIN assets as cAsset
+		ON t.counter_asset_id = cAsset.id
+	WHERE bAsset.is_valid = TRUE
+		AND cAsset.is_valid = TRUE
+		AND t.ledger_close_time > now() - interval '__NUMHOURSAGO__ hours'
+	GROUP BY bAsset.id, cAsset.id
+) t1
+INNER JOIN (
+	-- Last prices and close times:
+	SELECT DISTINCT ON (bAsset.id, cAsset.id)
+		bAsset.id as base_asset_id,
+		cAsset.id as counter_asset_id,
+		concat(bAsset.code, ':', bAsset.issuer_account, ' / ', cAsset.code, ':', cAsset.issuer_account) as trade_pair_name,
+		t.price as last_price,
+		t.ledger_close_time as close_time
+	FROM trades as t
+		JOIN assets as bAsset
+		ON t.base_asset_id = bAsset.id
+		JOIN assets as cAsset
+		ON t.counter_asset_id = cAsset.id
+	WHERE bAsset.is_valid = TRUE
+		AND cAsset.is_valid = TRUE
+		AND t.ledger_close_time > now() - interval '__NUMHOURSAGO__ hours'
+	ORDER BY base_asset_id, counter_asset_id, t.ledger_close_time DESC
+) t2 ON t1.trade_pair_name = t2.trade_pair_name
+LEFT JOIN (
+	-- Open price:
+	SELECT DISTINCT ON (bAsset.id, cAsset.id)
+		bAsset.id as base_asset_id,
+		cAsset.id as counter_asset_id,
+		concat(bAsset.code, ':', bAsset.issuer_account, ' / ', cAsset.code, ':', cAsset.issuer_account) as trade_pair_name,
+		t.price as open_price
+	 FROM trades as t
+		JOIN assets as bAsset
+		ON t.base_asset_id = bAsset.id
+		JOIN assets as cAsset
+		ON t.counter_asset_id = cAsset.id
+	WHERE bAsset.is_valid = TRUE
+		AND cAsset.is_valid = TRUE
+		AND t.ledger_close_time > now() - interval '__NUMHOURSAGO__ hours'
+	ORDER BY base_asset_id, counter_asset_id, t.ledger_close_time ASC
+) t3 ON t2.trade_pair_name = t3.trade_pair_name
+__WHERECLAUSE__
 ORDER BY trade_pair_name;
 `

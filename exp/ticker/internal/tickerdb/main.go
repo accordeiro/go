@@ -104,6 +104,39 @@ type Market struct {
 	LastPrice          float64   `db:"last_price"`
 }
 
+// PartialMarket represents the aggregated market data for a
+// specific pair of assets since <Since>
+type PartialMarket struct {
+	TradePairName  string    `db:"trade_pair_name"`
+	BaseAssetID    int32     `db:"base_asset_id"`
+	CounterAssetID int32     `db:"counter_asset_id"`
+	BaseVolume     float64   `db:"base_volume"`
+	CounterVolume  float64   `db:"counter_volume"`
+	TradeCount     int32     `db:"trade_count"`
+	Open           float64   `db:"open_price"`
+	Low            float64   `db:"lowest_price"`
+	High           float64   `db:"highest_price"`
+	Change         float64   `db:"price_change"`
+	Close          float64   `db:"last_price"`
+	CloseTime      time.Time `db:"close_time"`
+}
+
+// // PartialAggregatedMarket represents the aggregated market data for
+// // a generic trade pair since <Since>
+// type PartialAggregatedMarket struct {
+// 	TradePair     string    `db:"trade_pair_name"`
+// 	BaseVolume    float64   `db:"base_volume"`
+// 	CounterVolume float64   `db:"counter_volume"`
+// 	TradeCount    int32     `db:"trade_count"`
+// 	Open          float64   `db:"open"`
+// 	Low           float64   `db:"low"`
+// 	High          float64   `db:"high"`
+// 	Change        float64   `db:"change"`
+// 	Close         float64   `db:"close"`
+// 	CloseTime     time.Time `db:"close_time"`
+// 	Since         time.Time `db:"since"`
+// }
+
 // CreateSession returns a new TickerSession that connects to the given db settings
 func CreateSession(driverName, dataSourceName string) (session TickerSession, err error) {
 	dbconn, err := sqlx.Connect(driverName, dataSourceName)
