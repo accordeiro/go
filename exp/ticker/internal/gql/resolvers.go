@@ -1,9 +1,5 @@
 package gql
 
-func (_ *resolver) Issuers() []*issuer {
-	return nil
-}
-
 func (_ *resolver) Markets(
 	args struct {
 		BaseAssetCode      *string

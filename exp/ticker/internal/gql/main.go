@@ -38,8 +38,6 @@ type asset struct {
 	IssuerID                    int32
 }
 
-type issuer tickerdb.Issuer
-
 // PartialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
 type partialMarket struct {
