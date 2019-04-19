@@ -30,6 +30,7 @@ type Query {
 }
 
 scalar Time
+scalar BigInt
 
 type Asset {
 	code: String!
@@ -43,12 +44,12 @@ type Asset {
 	anchorAssetCode: String!
 	anchorAssetType: String!
 	isAssetAnchored: Boolean!
-	displayDecimals: Int!
+	displayDecimals: BigInt!
 	name: String!
 	desc: String!
 	conditions: String!
-	fixedNumber: Int!
-	maxNumber: Int!
+	fixedNumber: BigInt!
+	maxNumber: BigInt!
 	isUnlimited: Boolean!
 	redemptionInstructions: String!
 	collateralAddresses: String!

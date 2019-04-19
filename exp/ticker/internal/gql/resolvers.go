@@ -1,9 +1,5 @@
 package gql
 
-func (_ *resolver) Assets() []*asset {
-	return nil
-}
-
 func (_ *resolver) Issuers() []*issuer {
 	return nil
 }

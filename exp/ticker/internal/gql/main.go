@@ -10,7 +10,33 @@ import (
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 )
 
-type asset tickerdb.Asset
+type asset struct {
+	Code                        string
+	IssuerAccount               string
+	Type                        string
+	NumAccounts                 int32
+	AuthRequired                bool
+	AuthRevocable               bool
+	Amount                      float64
+	AssetControlledByDomain     bool
+	AnchorAssetCode             string
+	AnchorAssetType             string
+	IsValid                     bool
+	DisplayDecimals             BigInt
+	Name                        string
+	Desc                        string
+	Conditions                  string
+	IsAssetAnchored             bool
+	FixedNumber                 BigInt
+	MaxNumber                   BigInt
+	IsUnlimited                 bool
+	RedemptionInstructions      string
+	CollateralAddresses         string
+	CollateralAddressSignatures string
+	Countries                   string
+	Status                      string
+	IssuerID                    int32
+}
 
 type issuer tickerdb.Issuer
 
@@ -47,11 +73,15 @@ type partialAggregatedMarket struct {
 	Since         graphql.Time
 }
 
-type resolver struct{}
+type resolver struct {
+	db *tickerdb.TickerSession
+}
 
-func Serve() {
+func Serve(session *tickerdb.TickerSession) {
+	r := resolver{db: session}
 	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
-	s := graphql.MustParseSchema(schema.String(), &resolver{}, opts...)
+	s := graphql.MustParseSchema(schema.String(), &r, opts...)
+
 	http.Handle("/query", &relay.Handler{Schema: s})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
