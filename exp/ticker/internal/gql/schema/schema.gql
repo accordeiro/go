@@ -6,10 +6,12 @@ type Query {
 	# retrieve all validated assets on the Stellar network.
 	assets: [Asset]!
 
+	# retrieve all validated issuers on the Stellar network.
+	issuers: [Issuer]!
+
 	# retrieve trade stats from the last <numHoursAgo> hours
 	# (default = 24 hours). optionally provide counter and
 	# base asset info for filtering.
-
 	markets(
 		baseAssetCode: String
 		baseAssetIssuer: String
@@ -83,4 +85,17 @@ type AggregatedMarket {
 	close: Float!
 	closeTime: Time!
 	since: Time!
+}
+
+type Issuer {
+	publicKey: String!
+	name: String!
+	url: String!
+	tomlURL: String!
+	federationServer: String!
+	authServer: String!
+	transferServer: String!
+	webAuthEndpoint: String!
+	depositServer: String!
+	orgTwitter: String!
 }

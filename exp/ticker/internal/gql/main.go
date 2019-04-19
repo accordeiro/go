@@ -12,6 +12,8 @@ import (
 
 type Asset tickerdb.Asset
 
+type Issuer tickerdb.Issuer
+
 // PartialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
 type PartialMarket struct {

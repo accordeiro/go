@@ -4,6 +4,10 @@ func (_ *resolver) Assets() []*Asset {
 	return nil
 }
 
+func (_ *resolver) Issuers() []*Issuer {
+	return nil
+}
+
 func (_ *resolver) Markets(
 	args struct {
 		BaseAssetCode      *string
