@@ -107,18 +107,22 @@ type Market struct {
 // PartialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
 type PartialMarket struct {
-	TradePairName  string    `db:"trade_pair_name"`
-	BaseAssetID    int32     `db:"base_asset_id"`
-	CounterAssetID int32     `db:"counter_asset_id"`
-	BaseVolume     float64   `db:"base_volume"`
-	CounterVolume  float64   `db:"counter_volume"`
-	TradeCount     int32     `db:"trade_count"`
-	Open           float64   `db:"open_price"`
-	Low            float64   `db:"lowest_price"`
-	High           float64   `db:"highest_price"`
-	Change         float64   `db:"price_change"`
-	Close          float64   `db:"last_price"`
-	CloseTime      time.Time `db:"close_time"`
+	TradePairName      string    `db:"trade_pair_name"`
+	BaseAssetID        int32     `db:"base_asset_id"`
+	BaseAssetCode      string    `db:"base_asset_code"`
+	BaseAssetIssuer    string    `db:"base_asset_issuer"`
+	CounterAssetID     int32     `db:"counter_asset_id"`
+	CounterAssetCode   string    `db:"counter_asset_code"`
+	CounterAssetIssuer string    `db:"counter_asset_issuer"`
+	BaseVolume         float64   `db:"base_volume"`
+	CounterVolume      float64   `db:"counter_volume"`
+	TradeCount         int32     `db:"trade_count"`
+	Open               float64   `db:"open_price"`
+	Low                float64   `db:"lowest_price"`
+	High               float64   `db:"highest_price"`
+	Change             float64   `db:"price_change"`
+	Close              float64   `db:"last_price"`
+	CloseTime          time.Time `db:"close_time"`
 }
 
 // // PartialAggregatedMarket represents the aggregated market data for

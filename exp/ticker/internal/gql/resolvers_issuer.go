@@ -1,14 +1,18 @@
 package gql
 
 import (
+	"errors"
+
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 )
 
-func (r *resolver) Issuers() ([]*tickerdb.Issuer, error) {
-	var issuers []*tickerdb.Issuer
+// Issuers resolves the issuers() GraphQL query.
+func (r *resolver) Issuers() (issuers []*tickerdb.Issuer, err error) {
 	dbIssuers, err := r.db.GetAllIssuers()
 	if err != nil {
-		return issuers, err
+		// obfuscating sql errors to avoid exposing underlying
+		// implementation
+		err = errors.New("could not retrieve the requested data")
 	}
 
 	for i := range dbIssuers {

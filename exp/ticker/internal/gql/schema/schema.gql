@@ -61,8 +61,10 @@ type Asset {
 
 type Market {
 	tradePair: String!
-	baseAssetID: Int!
-	counterAssetID: Int!
+	baseAssetCode: String!
+	baseAssetIssuer: String!
+	counterAssetCode: String!
+	counterAssetIssuer: String!
 	baseVolume: Float!
 	counterVolume: Float!
 	tradeCount: Int!

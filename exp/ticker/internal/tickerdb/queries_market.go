@@ -5,11 +5,16 @@ import (
 	"strings"
 )
 
+// RetrieveMarketData retrieves the 24h- and 7d aggregated market data for all
+// markets that were active during this period.
 func (s *TickerSession) RetrieveMarketData() (markets []Market, err error) {
 	err = s.SelectRaw(&markets, marketQuery)
 	return
 }
 
+// RetrievePartialMarkets retrieves data in the PartialMarket format from the database.
+// It optionally filters the data according to the provided base and counter asset params
+// provided, as well as the numHoursAgo time offset.
 func (s *TickerSession) RetrievePartialMarkets(
 	baseAssetCode *string,
 	baseAssetIssuer *string,
@@ -17,9 +22,9 @@ func (s *TickerSession) RetrievePartialMarkets(
 	counterAssetIssuer *string,
 	numHoursAgo int,
 ) (partialMkts []PartialMarket, err error) {
-	where := generateWhereClause([]optionalVar{
+	where, args := generateWhereClause([]optionalVar{
 		optionalVar{"t1.base_asset_code", baseAssetCode},
-		optionalVar{"t2.base_asset_issuer", baseAssetIssuer},
+		optionalVar{"t1.base_asset_issuer", baseAssetIssuer},
 		optionalVar{"t1.counter_asset_code", counterAssetCode},
 		optionalVar{"t1.counter_asset_issuer", counterAssetIssuer},
 	})
@@ -27,9 +32,11 @@ func (s *TickerSession) RetrievePartialMarkets(
 	q := strings.Replace(partialMarketQuery, "__WHERECLAUSE__", where, -1)
 	q = strings.Replace(q, "__NUMHOURSAGO__", fmt.Sprintf("%d", numHoursAgo), -1)
 
-	fmt.Println(q)
-
-	err = s.SelectRaw(&partialMkts, q)
+	argsInterface := make([]interface{}, len(args))
+	for i, v := range args {
+		argsInterface[i] = v
+	}
+	err = s.SelectRaw(&partialMkts, q, argsInterface...)
 	return
 }
 
@@ -148,7 +155,11 @@ var partialMarketQuery = `
 SELECT
 	t1.trade_pair_name,
 	t1.base_asset_id,
+	t1.base_asset_code,
+	t1.base_asset_issuer,
 	t1.counter_asset_id,
+	t1.counter_asset_code,
+	t1.counter_asset_issuer,
 	base_volume,
 	counter_volume,
 	trade_count,

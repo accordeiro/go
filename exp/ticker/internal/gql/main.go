@@ -10,6 +10,8 @@ import (
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 )
 
+// asset represents a Stellar asset, with some type
+// adaptations to match the GraphQL type system
 type asset struct {
 	Code                        string
 	IssuerAccount               string
@@ -38,25 +40,27 @@ type asset struct {
 	IssuerID                    int32
 }
 
-// PartialMarket represents the aggregated market data for a
+// partialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
 type partialMarket struct {
-	TradePair      string
-	BaseAssetID    int32
-	CounterAssetID int32
-	BaseVolume     float64
-	CounterVolume  float64
-	TradeCount     int32
-	Open           float64
-	Low            float64
-	High           float64
-	Change         float64
-	Close          float64
-	CloseTime      graphql.Time
-	Since          graphql.Time
+	TradePair          string
+	BaseAssetCode      string
+	BaseAssetIssuer    string
+	CounterAssetCode   string
+	CounterAssetIssuer string
+	BaseVolume         float64
+	CounterVolume      float64
+	TradeCount         int32
+	Open               float64
+	Low                float64
+	High               float64
+	Change             float64
+	Close              float64
+	CloseTime          graphql.Time
+	Since              graphql.Time
 }
 
-// PartialAggregatedMarket represents the aggregated market data for
+// partialAggregatedMarket represents the aggregated market data for
 // a generic trade pair since <Since>
 type partialAggregatedMarket struct {
 	TradePair     string

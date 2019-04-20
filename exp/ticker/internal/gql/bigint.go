@@ -1,3 +1,9 @@
+/*
+This file implements an interface to this application's
+custom BigInt GraphQL scalar type. It can receive values
+of type int, int32 and int64.
+*/
+
 package gql
 
 import (

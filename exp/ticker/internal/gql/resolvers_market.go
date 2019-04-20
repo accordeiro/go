@@ -1,19 +1,22 @@
 package gql
 
-func (r *resolver) Markets(
-	args struct {
-		BaseAssetCode      *string
-		BaseAssetIssuer    *string
-		CounterAssetCode   *string
-		CounterAssetIssuer *string
-		NumHoursAgo        *int32
-	},
-) ([]*partialMarket, error) {
-	var partialMkts []*partialMarket
+import (
+	"errors"
 
-	numHours := int(96)
-	if args.NumHoursAgo != nil {
-		numHours = int(*args.NumHoursAgo)
+	"github.com/stellar/go/exp/ticker/internal/tickerdb"
+)
+
+// Markets resolves the markets() GraphQL query.
+func (r *resolver) Markets(args struct {
+	BaseAssetCode      *string
+	BaseAssetIssuer    *string
+	CounterAssetCode   *string
+	CounterAssetIssuer *string
+	NumHoursAgo        *int32
+}) (partialMarkets []*partialMarket, err error) {
+	numHours, err := validateNumHoursAgo(args.NumHoursAgo)
+	if err != nil {
+		return
 	}
 
 	dbMarkets, err := r.db.RetrievePartialMarkets(
@@ -24,29 +27,53 @@ func (r *resolver) Markets(
 		numHours,
 	)
 	if err != nil {
-		return nil, err
+		// obfuscating sql errors to avoid exposing underlying
+		// implementation
+		err = errors.New("could not retrieve the requested data")
+		return
 	}
 
 	for _, dbMkt := range dbMarkets {
-		partialMkts = append(partialMkts, &partialMarket{
-			TradePair: dbMkt.TradePairName,
-			// TODO: provide code and issuer instead of ids
-			BaseAssetID:    dbMkt.BaseAssetID,
-			CounterAssetID: dbMkt.CounterAssetID,
-			BaseVolume:     dbMkt.BaseVolume,
-			CounterVolume:  dbMkt.CounterVolume,
-			TradeCount:     dbMkt.TradeCount,
-			Open:           dbMkt.Open,
-			Low:            dbMkt.Low,
-			High:           dbMkt.High,
-			Change:         dbMkt.Change,
-			Close:          dbMkt.Close,
-			// CloseTime: dbMkt.CloseTime,
-		})
+		partialMarkets = append(partialMarkets, dbMarketToPartialMarket(dbMkt))
 	}
-	return partialMkts, err
+	return
 }
 
+// validateNumHoursAgo validates if the numHoursAgo parameter is within an acceptable
+// time range (at most 168 hours ago = 7 days)
+func validateNumHoursAgo(n *int32) (int, error) {
+	if n == nil {
+		return 24, nil // default numHours = 24
+	}
+
+	if *n <= 168 {
+		return int(*n), nil
+	}
+
+	return 0, errors.New("numHoursAgo cannot be greater than 168 (7 days)")
+}
+
+// dbMarketToPartialMarket converts a tickerdb.PartialMarket to a *partialMarket
+func dbMarketToPartialMarket(dbMarket tickerdb.PartialMarket) *partialMarket {
+	return &partialMarket{
+		TradePair:          dbMarket.TradePairName,
+		BaseAssetCode:      dbMarket.BaseAssetCode,
+		BaseAssetIssuer:    dbMarket.BaseAssetIssuer,
+		CounterAssetCode:   dbMarket.CounterAssetCode,
+		CounterAssetIssuer: dbMarket.CounterAssetIssuer,
+		BaseVolume:         dbMarket.BaseVolume,
+		CounterVolume:      dbMarket.CounterVolume,
+		TradeCount:         dbMarket.TradeCount,
+		Open:               dbMarket.Open,
+		Low:                dbMarket.Low,
+		High:               dbMarket.High,
+		Change:             dbMarket.Change,
+		Close:              dbMarket.Close,
+		// TODO: add CloseTime: dbMkt.CloseTime,
+	}
+}
+
+// Ticker resolves the ticker() GraphQL query (TODO)
 func (_ *resolver) Ticker(
 	args struct {
 		PairName    *string

@@ -60,3 +60,43 @@ func TestGeneratePlaceholders(t *testing.T) {
 	placeholder := generatePlaceholders(p)
 	assert.Equal(t, "?, ?, ?", placeholder)
 }
+
+func TestGenerateWhereClause(t *testing.T) {
+	baseAssetCode := new(string)
+	baseAssetIssuer := new(string)
+	*baseAssetCode = "baseAssetCode"
+	*baseAssetIssuer = "baseAssetIssuer"
+
+	where1, args1 := generateWhereClause([]optionalVar{
+		optionalVar{"t1.base_asset_code", nil},
+		optionalVar{"t1.base_asset_issuer", nil},
+		optionalVar{"t1.counter_asset_code", nil},
+		optionalVar{"t1.counter_asset_issuer", nil},
+	})
+
+	assert.Equal(t, "", where1)
+	assert.Equal(t, 0, len(args1))
+
+	where2, args2 := generateWhereClause([]optionalVar{
+		optionalVar{"t1.base_asset_code", baseAssetCode},
+		optionalVar{"t1.base_asset_issuer", nil},
+		optionalVar{"t1.counter_asset_code", nil},
+		optionalVar{"t1.counter_asset_issuer", nil},
+	})
+
+	assert.Equal(t, "WHERE t1.base_asset_code = ?", where2)
+	assert.Equal(t, 1, len(args2))
+	assert.Equal(t, *baseAssetCode, args2[0])
+
+	where3, args3 := generateWhereClause([]optionalVar{
+		optionalVar{"t1.base_asset_code", baseAssetCode},
+		optionalVar{"t1.base_asset_issuer", baseAssetIssuer},
+		optionalVar{"t1.counter_asset_code", nil},
+		optionalVar{"t1.counter_asset_issuer", nil},
+	})
+
+	assert.Equal(t, "WHERE t1.base_asset_code = ? AND t1.base_asset_issuer = ?", where3)
+	assert.Equal(t, 2, len(args3))
+	assert.Equal(t, *baseAssetCode, args3[0])
+	assert.Equal(t, *baseAssetIssuer, args3[1])
+}

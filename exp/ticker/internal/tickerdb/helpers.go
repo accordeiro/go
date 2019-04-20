@@ -70,21 +70,28 @@ func generatePlaceholders(fields []interface{}) (placeholder string) {
 	return
 }
 
+// optionalVar is a simple struct to represent a query variable that should
+// only be used in a statement if its value is not null
 type optionalVar struct {
-	varName string
-	varVal  *string
+	name string
+	val  *string
 }
 
-func generateWhereClause(optVars []optionalVar) string {
-	var out string
+// generateWhereClause generates a WHERE clause in the format:
+// "WHERE x = ? AND y = ? AND ..." where the number of conditions is equal
+// to the number of optVars with val != nil. It also returns the valid vals
+// in the args param. This function was created to take advantage of go/sql's
+// sanitization and to prevent possible SQL injections.
+func generateWhereClause(optVars []optionalVar) (clause string, args []string) {
 	for _, ov := range optVars {
-		if ov.varVal != nil {
-			if out == "" {
-				out = fmt.Sprintf("WHERE %s = '%s'", ov.varName, *ov.varVal)
+		if ov.val != nil {
+			if clause == "" {
+				clause = fmt.Sprintf("WHERE %s = ?", ov.name)
 			} else {
-				out += fmt.Sprintf(" AND %s = '%s'", ov.varName, *ov.varVal)
+				clause += fmt.Sprintf(" AND %s = ?", ov.name)
 			}
+			args = append(args, *ov.val)
 		}
 	}
-	return out
+	return
 }
