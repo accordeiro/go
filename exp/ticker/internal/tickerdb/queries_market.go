@@ -18,14 +18,27 @@ func (s *TickerSession) RetrievePartialAggMarkets(
 	pairName *string,
 	numHoursAgo int,
 ) (partialMkts []PartialMarket, err error) {
+	var bCode, cCode string
 	sqlTrue := new(string)
 	*sqlTrue = "TRUE"
-
-	where, args := generateWhereClause([]optionalVar{
-		optionalVar{"trade_pair_name", pairName},
+	optVars := []optionalVar{
 		optionalVar{"bAsset.is_valid", sqlTrue},
 		optionalVar{"cAsset.is_valid", sqlTrue},
-	})
+	}
+
+	// parse base and asset codes and add them as SQL parameters
+	if pairName != nil {
+		bCode, cCode, err = getBaseAndCounterCodes(*pairName)
+		if err != nil {
+			return
+		}
+		optVars = append(optVars, []optionalVar{
+			optionalVar{"bAsset.code", &bCode},
+			optionalVar{"cAsset.code", &cCode},
+		}...)
+	}
+
+	where, args := generateWhereClause(optVars)
 	where += fmt.Sprintf(
 		" AND t.ledger_close_time > now() - interval '%d hours'",
 		numHoursAgo,

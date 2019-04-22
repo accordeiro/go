@@ -1,8 +1,10 @@
 package tickerdb
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // getDBFieldTags returns all "db" tags for a given struct, optionally excluding the "id".
@@ -94,4 +96,14 @@ func generateWhereClause(optVars []optionalVar) (clause string, args []string) {
 		}
 	}
 	return
+}
+
+// getBaseAndCounterCodes takes an asset pair name string (e.g: XLM_BTC)
+// and returns the parsed asset codes (e.g.: XLM, BTC)
+func getBaseAndCounterCodes(pairName string) (string, string, error) {
+	assets := strings.Split(pairName, "_")
+	if len(assets) != 2 {
+		return "", "", errors.New("invalid asset pair name")
+	}
+	return assets[0], assets[1], nil
 }
