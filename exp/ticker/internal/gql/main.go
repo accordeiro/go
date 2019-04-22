@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/graph-gophers/graphql-go"
@@ -64,6 +63,7 @@ type resolver struct {
 	logger *hlog.Entry
 }
 
+// New creates a new GraphQL resolver
 func New(s *tickerdb.TickerSession, l *hlog.Entry) *resolver {
 	if s == nil {
 		panic("A valid database session must be provided for the GraphQL server")
@@ -71,12 +71,29 @@ func New(s *tickerdb.TickerSession, l *hlog.Entry) *resolver {
 	return &resolver{db: s, logger: l}
 }
 
-func (r *resolver) Serve(port string) {
+// Serve creates a GraphQL interface on <address>/graphql
+func (r *resolver) Serve(address string) {
 	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
 	r.logger.Infoln("Validating GraphQL schema")
 	s := graphql.MustParseSchema(schema.String(), r, opts...)
-	r.logger.Infof("Schema Validated. Starting to serve on address %s", port)
+	r.logger.Infof("Schema Validated!")
 
-	http.Handle("/graphql", &relay.Handler{Schema: s})
-	log.Fatal(http.ListenAndServe(port, nil))
+	relayHandler := relay.Handler{Schema: s}
+
+	mux := http.NewServeMux()
+	mux.Handle("/graphql", http.HandlerFunc(func(wr http.ResponseWriter, re *http.Request) {
+		r.logger.Infof("%s %s %s\n", re.RemoteAddr, re.Method, re.URL)
+		relayHandler.ServeHTTP(wr, re)
+	}))
+	mux.Handle("/graphiql", GraphiQL{})
+
+	server := &http.Server{
+		Addr:    address,
+		Handler: mux,
+	}
+	r.logger.Infof("Starting to serve on address %s\n", address)
+
+	if err := server.ListenAndServe(); err != nil {
+		r.logger.Errorln("server.ListenAndServe:", err)
+	}
 }
