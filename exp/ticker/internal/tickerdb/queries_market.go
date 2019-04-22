@@ -12,6 +12,34 @@ func (s *TickerSession) RetrieveMarketData() (markets []Market, err error) {
 	return
 }
 
+// RetrievePartialAggMarkets retrieves the aggregated market data for all
+// markets (or for a specific one if PairName != nil) for a given period.
+func (s *TickerSession) RetrievePartialAggMarkets(
+	pairName *string,
+	numHoursAgo int,
+) (partialMkts []PartialMarket, err error) {
+	sqlTrue := new(string)
+	*sqlTrue = "TRUE"
+
+	where, args := generateWhereClause([]optionalVar{
+		optionalVar{"trade_pair_name", pairName},
+		optionalVar{"bAsset.is_valid", sqlTrue},
+		optionalVar{"cAsset.is_valid", sqlTrue},
+	})
+	where += fmt.Sprintf(
+		" AND t.ledger_close_time > now() - interval '%d hours'",
+		numHoursAgo,
+	)
+	q := strings.Replace(aggMarketQuery, "__WHERECLAUSE__", where, -1)
+
+	argsInterface := make([]interface{}, len(args))
+	for i, v := range args {
+		argsInterface[i] = v
+	}
+	err = s.SelectRaw(&partialMkts, q, argsInterface...)
+	return
+}
+
 // RetrievePartialMarkets retrieves data in the PartialMarket format from the database.
 // It optionally filters the data according to the provided base and counter asset params
 // provided, as well as the numHoursAgo time offset.
@@ -181,3 +209,21 @@ FROM trades AS t
 __WHERECLAUSE__
 GROUP BY bAsset.code, bAsset.issuer_account, cAsset.code, cAsset.issuer_account;
 `
+
+var aggMarketQuery = `
+SELECT
+	concat(bAsset.code, '_', cAsset.code) as trade_pair_name,
+	sum(t.base_amount) AS base_volume,
+	sum(t.counter_amount) AS counter_volume,
+	count(t.base_amount) AS trade_count,
+	max(t.price) AS highest_price,
+	min(t.price) AS lowest_price,
+	(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
+	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
+	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
+	max(t.ledger_close_time) AS close_time
+FROM trades AS t
+	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
+	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
+__WHERECLAUSE__
+GROUP BY trade_pair_name;`

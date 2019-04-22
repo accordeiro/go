@@ -39,6 +39,33 @@ func (r *resolver) Markets(args struct {
 	return
 }
 
+// Ticker resolves the ticker() GraphQL query (TODO)
+func (r *resolver) Ticker(
+	args struct {
+		PairName    *string
+		NumHoursAgo *int32
+	},
+) (partialMarkets []*partialMarket, err error) {
+	numHours, err := validateNumHoursAgo(args.NumHoursAgo)
+	if err != nil {
+		return
+	}
+
+	dbMarkets, err := r.db.RetrievePartialAggMarkets(args.PairName, numHours)
+	if err != nil {
+		// obfuscating sql errors to avoid exposing underlying
+		// implementation
+		err = errors.New("could not retrieve the requested data")
+		return
+	}
+
+	for _, dbMkt := range dbMarkets {
+		partialMarkets = append(partialMarkets, dbMarketToPartialMarket(dbMkt))
+	}
+	return
+
+}
+
 // validateNumHoursAgo validates if the numHoursAgo parameter is within an acceptable
 // time range (at most 168 hours ago = 7 days)
 func validateNumHoursAgo(n *int32) (int, error) {
@@ -71,14 +98,4 @@ func dbMarketToPartialMarket(dbMarket tickerdb.PartialMarket) *partialMarket {
 		Close:              dbMarket.Close,
 		// TODO: add CloseTime: dbMkt.CloseTime,
 	}
-}
-
-// Ticker resolves the ticker() GraphQL query (TODO)
-func (_ *resolver) Ticker(
-	args struct {
-		PairName    *string
-		NumHoursAgo *int32
-	},
-) []*partialAggregatedMarket {
-	return nil
 }

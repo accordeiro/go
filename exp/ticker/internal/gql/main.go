@@ -60,22 +60,6 @@ type partialMarket struct {
 	Since              graphql.Time
 }
 
-// partialAggregatedMarket represents the aggregated market data for
-// a generic trade pair since <Since>
-type partialAggregatedMarket struct {
-	TradePair     string
-	BaseVolume    float64
-	CounterVolume float64
-	TradeCount    int32
-	Open          float64
-	Low           float64
-	High          float64
-	Change        float64
-	Close         float64
-	CloseTime     graphql.Time
-	Since         graphql.Time
-}
-
 type resolver struct {
 	db *tickerdb.TickerSession
 }
