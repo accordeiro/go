@@ -8,6 +8,7 @@ import (
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/stellar/go/exp/ticker/internal/gql/schema"
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
+	hlog "github.com/stellar/go/support/log"
 )
 
 // asset represents a Stellar asset, with some type
@@ -61,14 +62,23 @@ type partialMarket struct {
 }
 
 type resolver struct {
-	db *tickerdb.TickerSession
+	db     *tickerdb.TickerSession
+	logger *hlog.Entry
 }
 
-func Serve(session *tickerdb.TickerSession) {
-	r := resolver{db: session}
-	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
-	s := graphql.MustParseSchema(schema.String(), &r, opts...)
+func New(s *tickerdb.TickerSession, l *hlog.Entry) *resolver {
+	if s == nil {
+		panic("A valid database session must be provided for the GraphQL server")
+	}
+	return &resolver{db: s, logger: l}
+}
 
-	http.Handle("/query", &relay.Handler{Schema: s})
-	log.Fatal(http.ListenAndServe(":8080", nil))
+func (r *resolver) Serve(port string) {
+	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
+	r.logger.Infoln("Validating GraphQL schema")
+	s := graphql.MustParseSchema(schema.String(), r, opts...)
+	r.logger.Infof("Schema Validated. Starting to serve on address %s", port)
+
+	http.Handle("/graphql", &relay.Handler{Schema: s})
+	log.Fatal(http.ListenAndServe(port, nil))
 }
