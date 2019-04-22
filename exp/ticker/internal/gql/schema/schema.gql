@@ -29,7 +29,6 @@ type Query {
 	): [AggregatedMarket]!
 }
 
-scalar Time
 scalar BigInt
 
 type Asset {
@@ -73,8 +72,6 @@ type Market {
 	high: Float!
 	change: Float!
 	close: Float!
-	closeTime: Time!
-	since: Time!
 }
 
 type AggregatedMarket {
@@ -87,8 +84,6 @@ type AggregatedMarket {
 	high: Float!
 	change: Float!
 	close: Float!
-	closeTime: Time!
-	since: Time!
 }
 
 type Issuer {

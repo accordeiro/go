@@ -96,6 +96,5 @@ func dbMarketToPartialMarket(dbMarket tickerdb.PartialMarket) *partialMarket {
 		High:               dbMarket.High,
 		Change:             dbMarket.Change,
 		Close:              dbMarket.Close,
-		// TODO: add CloseTime: dbMkt.CloseTime,
 	}
 }
