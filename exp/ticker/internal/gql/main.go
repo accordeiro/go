@@ -71,7 +71,7 @@ func New(s *tickerdb.TickerSession, l *hlog.Entry) *resolver {
 	return &resolver{db: s, logger: l}
 }
 
-// Serve creates a GraphQL interface on <address>/graphql
+// Serve creates a GraphQL interface on <address>/graphql and a GraphiQL explorer on /graphiql
 func (r *resolver) Serve(address string) {
 	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
 	r.logger.Infoln("Validating GraphQL schema")

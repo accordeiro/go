@@ -69,10 +69,10 @@ func (s *TickerSession) RetrievePartialMarkets(
 	where, args := generateWhereClause([]optionalVar{
 		optionalVar{"bAsset.is_valid", sqlTrue},
 		optionalVar{"cAsset.is_valid", sqlTrue},
-		optionalVar{"t1.base_asset_code", baseAssetCode},
-		optionalVar{"t1.base_asset_issuer", baseAssetIssuer},
-		optionalVar{"t1.counter_asset_code", counterAssetCode},
-		optionalVar{"t1.counter_asset_issuer", counterAssetIssuer},
+		optionalVar{"bAsset.code", baseAssetCode},
+		optionalVar{"bAsset.issuer_account", baseAssetIssuer},
+		optionalVar{"cAsset.code", counterAssetCode},
+		optionalVar{"cAsset.issuer_account", counterAssetIssuer},
 	})
 	where += fmt.Sprintf(
 		" AND t.ledger_close_time > now() - interval '%d hours'",
