@@ -43,20 +43,21 @@ type asset struct {
 // partialMarket represents the aggregated market data for a
 // specific pair of assets since <Since>
 type partialMarket struct {
-	TradePair          string
-	BaseAssetCode      string
-	BaseAssetIssuer    string
-	CounterAssetCode   string
-	CounterAssetIssuer string
-	BaseVolume         float64
-	CounterVolume      float64
-	TradeCount         int32
-	Open               float64
-	Low                float64
-	High               float64
-	Change             float64
-	Close              float64
-	Since              graphql.Time
+	TradePair            string
+	BaseAssetCode        string
+	BaseAssetIssuer      string
+	CounterAssetCode     string
+	CounterAssetIssuer   string
+	BaseVolume           float64
+	CounterVolume        float64
+	TradeCount           int32
+	Open                 float64
+	Low                  float64
+	High                 float64
+	Change               float64
+	Close                float64
+	IntervalStart        graphql.Time
+	FirstLedgerCloseTime graphql.Time
 }
 
 type resolver struct {

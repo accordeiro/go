@@ -73,7 +73,8 @@ type Market {
 	high: Float!
 	change: Float!
 	close: Float!
-	since: Time!
+	intervalStart: Time!
+	firstLedgerCloseTime: Time!
 }
 
 type AggregatedMarket {
@@ -86,7 +87,8 @@ type AggregatedMarket {
 	high: Float!
 	change: Float!
 	close: Float!
-	since: Time!
+	intervalStart: Time!
+	firstLedgerCloseTime: Time!
 }
 
 type Issuer {

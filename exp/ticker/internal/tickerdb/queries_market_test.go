@@ -424,7 +424,7 @@ func TestRetrievePartialMarkets(t *testing.T) {
 	assert.Equal(
 		t,
 		oneHourAgo.Local().Truncate(time.Millisecond),
-		btceth1Mkt.Since.Local().Truncate(time.Millisecond),
+		btceth1Mkt.FirstLedgerCloseTime.Local().Truncate(time.Millisecond),
 	)
 
 	assert.Equal(t, 24.0, btceth2Mkt.BaseVolume)
@@ -438,7 +438,7 @@ func TestRetrievePartialMarkets(t *testing.T) {
 	assert.Equal(
 		t,
 		now.Local().Truncate(time.Millisecond),
-		btceth2Mkt.Since.Local().Truncate(time.Millisecond),
+		btceth2Mkt.FirstLedgerCloseTime.Local().Truncate(time.Millisecond),
 	)
 
 	// Now let's use the same data, but aggregating by asset pair
@@ -459,7 +459,7 @@ func TestRetrievePartialMarkets(t *testing.T) {
 	assert.Equal(
 		t,
 		oneHourAgo.Local().Truncate(time.Millisecond),
-		partialAggMkt.Since.Local().Truncate(time.Millisecond),
+		partialAggMkt.FirstLedgerCloseTime.Local().Truncate(time.Millisecond),
 	)
 
 	// There might be some floating point rounding issues, so this test

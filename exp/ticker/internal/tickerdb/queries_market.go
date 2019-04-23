@@ -44,6 +44,7 @@ func (s *TickerSession) RetrievePartialAggMarkets(
 		numHoursAgo,
 	)
 	q := strings.Replace(aggMarketQuery, "__WHERECLAUSE__", where, -1)
+	q = strings.Replace(q, "__NUMHOURS__", fmt.Sprintf("%d", numHoursAgo), -1)
 
 	argsInterface := make([]interface{}, len(args))
 	for i, v := range args {
@@ -80,6 +81,7 @@ func (s *TickerSession) RetrievePartialMarkets(
 	)
 
 	q := strings.Replace(partialMarketQuery, "__WHERECLAUSE__", where, -1)
+	q = strings.Replace(q, "__NUMHOURS__", fmt.Sprintf("%d", numHoursAgo), -1)
 
 	argsInterface := make([]interface{}, len(args))
 	for i, v := range args {
@@ -215,7 +217,8 @@ SELECT
 	(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
 	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
 	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
-	min(t.ledger_close_time) AS since
+	(now() - interval '__NUMHOURS__ hours') AS interval_start,
+	min(t.ledger_close_time) AS first_ledger_close_time
 FROM trades AS t
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
@@ -234,7 +237,8 @@ SELECT
 	(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
 	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
 	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
-	min(t.ledger_close_time) AS since
+	(now() - interval '__NUMHOURS__ hours') AS interval_start,
+	min(t.ledger_close_time) AS first_ledger_close_time
 FROM trades AS t
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
