@@ -4,10 +4,10 @@ schema {
 
 type Query {
 	# retrieve all validated assets on the Stellar network.
-	assets: [Asset]!
+	assets: [Asset!]!
 
 	# retrieve all validated issuers on the Stellar network.
-	issuers: [Issuer]!
+	issuers: [Issuer!]!
 
 	# retrieve trade stats from the last <numHoursAgo> hours
 	# (default = 24 hours). optionally provide counter and
