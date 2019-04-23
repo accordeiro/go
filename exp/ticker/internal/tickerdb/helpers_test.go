@@ -3,6 +3,8 @@ package tickerdb
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -99,4 +101,29 @@ func TestGenerateWhereClause(t *testing.T) {
 	assert.Equal(t, 2, len(args3))
 	assert.Equal(t, *baseAssetCode, args3[0])
 	assert.Equal(t, *baseAssetIssuer, args3[1])
+}
+
+func TestGetBaseAndCounterCodes(t *testing.T) {
+	a1, a2, err := getBaseAndCounterCodes("XLM_BTC")
+	require.NoError(t, err)
+	assert.Equal(t, "XLM", a1)
+	assert.Equal(t, "BTC", a2)
+
+	a3, a4, err := getBaseAndCounterCodes("BTC_XLM")
+	require.NoError(t, err)
+	assert.Equal(t, "XLM", a3)
+	assert.Equal(t, "BTC", a4)
+
+	a5, a6, err := getBaseAndCounterCodes("BTC_ETH")
+	require.NoError(t, err)
+	assert.Equal(t, "BTC", a5)
+	assert.Equal(t, "ETH", a6)
+
+	a7, a8, err := getBaseAndCounterCodes("ETH_BTC")
+	require.NoError(t, err)
+	assert.Equal(t, "BTC", a7)
+	assert.Equal(t, "ETH", a8)
+
+	_, _, err = getBaseAndCounterCodes("BTC")
+	require.Error(t, err)
 }
