@@ -5,7 +5,7 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
-	"github.com/stellar/go/exp/ticker/internal/gql/schema"
+	"github.com/stellar/go/exp/ticker/internal/gql/static"
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 	hlog "github.com/stellar/go/support/log"
 )
@@ -75,7 +75,7 @@ func New(s *tickerdb.TickerSession, l *hlog.Entry) *resolver {
 func (r *resolver) Serve(address string) {
 	opts := []graphql.SchemaOpt{graphql.UseFieldResolvers()}
 	r.logger.Infoln("Validating GraphQL schema")
-	s := graphql.MustParseSchema(schema.String(), r, opts...)
+	s := graphql.MustParseSchema(static.Schema(), r, opts...)
 	r.logger.Infof("Schema Validated!")
 
 	relayHandler := relay.Handler{Schema: s}
