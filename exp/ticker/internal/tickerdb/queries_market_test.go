@@ -421,6 +421,11 @@ func TestRetrievePartialMarkets(t *testing.T) {
 	assert.Equal(t, -0.9, btceth1Mkt.Change)
 	assert.Equal(t, 1.0, btceth1Mkt.High)
 	assert.Equal(t, 0.1, btceth1Mkt.Low)
+	assert.Equal(
+		t,
+		oneHourAgo.Local().Truncate(time.Millisecond),
+		btceth1Mkt.Since.Local().Truncate(time.Millisecond),
+	)
 
 	assert.Equal(t, 24.0, btceth2Mkt.BaseVolume)
 	assert.Equal(t, 26.0, btceth2Mkt.CounterVolume)
@@ -430,6 +435,11 @@ func TestRetrievePartialMarkets(t *testing.T) {
 	assert.Equal(t, 0.0, btceth2Mkt.Change)
 	assert.Equal(t, 0.92, btceth2Mkt.High)
 	assert.Equal(t, 0.92, btceth2Mkt.Low)
+	assert.Equal(
+		t,
+		now.Local().Truncate(time.Millisecond),
+		btceth2Mkt.Since.Local().Truncate(time.Millisecond),
+	)
 
 	// Now let's use the same data, but aggregating by asset pair
 	partialAggMkts, err := session.RetrievePartialAggMarkets(nil, 12)
@@ -446,6 +456,11 @@ func TestRetrievePartialMarkets(t *testing.T) {
 	assert.Equal(t, 0.92, partialAggMkt.Close)
 	assert.Equal(t, 1.0, partialAggMkt.High)
 	assert.Equal(t, 0.1, partialAggMkt.Low)
+	assert.Equal(
+		t,
+		oneHourAgo.Local().Truncate(time.Millisecond),
+		partialAggMkt.Since.Local().Truncate(time.Millisecond),
+	)
 
 	// There might be some floating point rounding issues, so this test
 	// needs to be a bit more flexible. Since the change is 0.08, an error

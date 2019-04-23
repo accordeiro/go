@@ -56,6 +56,7 @@ type partialMarket struct {
 	High               float64
 	Change             float64
 	Close              float64
+	Since              graphql.Time
 }
 
 type resolver struct {

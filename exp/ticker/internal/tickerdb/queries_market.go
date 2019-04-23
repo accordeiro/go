@@ -214,7 +214,8 @@ SELECT
 	min(t.price) AS lowest_price,
 	(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
 	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
-	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change
+	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
+	min(t.ledger_close_time) AS since
 FROM trades AS t
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
@@ -232,7 +233,8 @@ SELECT
 	min(t.price) AS lowest_price,
 	(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
 	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
-	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change
+	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
+	min(t.ledger_close_time) AS since
 FROM trades AS t
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id

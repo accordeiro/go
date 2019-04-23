@@ -123,7 +123,7 @@ type PartialMarket struct {
 	High               float64   `db:"highest_price"`
 	Change             float64   `db:"price_change"`
 	Close              float64   `db:"last_price"`
-	CloseTime          time.Time `db:"close_time"`
+	Since              time.Time `db:"since"`
 }
 
 // CreateSession returns a new TickerSession that connects to the given db settings

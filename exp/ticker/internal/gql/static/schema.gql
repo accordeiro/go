@@ -30,6 +30,7 @@ type Query {
 }
 
 scalar BigInt
+scalar Time
 
 type Asset {
 	code: String!
@@ -72,6 +73,7 @@ type Market {
 	high: Float!
 	change: Float!
 	close: Float!
+	since: Time!
 }
 
 type AggregatedMarket {
@@ -84,6 +86,7 @@ type AggregatedMarket {
 	high: Float!
 	change: Float!
 	close: Float!
+	since: Time!
 }
 
 type Issuer {

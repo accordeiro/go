@@ -3,6 +3,7 @@ package gql
 import (
 	"errors"
 
+	"github.com/graph-gophers/graphql-go"
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 )
 
@@ -96,5 +97,6 @@ func dbMarketToPartialMarket(dbMarket tickerdb.PartialMarket) *partialMarket {
 		High:               dbMarket.High,
 		Change:             dbMarket.Change,
 		Close:              dbMarket.Close,
+		Since:              graphql.Time{Time: dbMarket.Since},
 	}
 }
