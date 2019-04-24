@@ -112,9 +112,11 @@ type PartialMarket struct {
 	BaseAssetID          int32     `db:"base_asset_id"`
 	BaseAssetCode        string    `db:"base_asset_code"`
 	BaseAssetIssuer      string    `db:"base_asset_issuer"`
+	BaseAssetType        string    `db:"base_asset_type"`
 	CounterAssetID       int32     `db:"counter_asset_id"`
 	CounterAssetCode     string    `db:"counter_asset_code"`
 	CounterAssetIssuer   string    `db:"counter_asset_issuer"`
+	CounterAssetType     string    `db:"counter_asset_type"`
 	BaseVolume           float64   `db:"base_volume"`
 	CounterVolume        float64   `db:"counter_volume"`
 	TradeCount           int32     `db:"trade_count"`

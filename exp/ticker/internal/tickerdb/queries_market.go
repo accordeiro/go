@@ -158,8 +158,10 @@ SELECT
 	concat(bAsset.code, ':', bAsset.issuer_account, ' / ', cAsset.code, ':', cAsset.issuer_account) as trade_pair_name,
 	bAsset.code AS base_asset_code,
 	bAsset.issuer_account as base_asset_issuer,
+	bAsset.type as base_asset_type,
 	cAsset.code AS counter_asset_code,
 	cAsset.issuer_account AS counter_asset_issuer,
+	cAsset.type as counter_asset_type,
 	sum(t.base_amount) AS base_volume,
 	sum(t.counter_amount) AS counter_volume,
 	count(t.base_amount) AS trade_count,
@@ -174,7 +176,7 @@ FROM trades AS t
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
 __WHERECLAUSE__
-GROUP BY bAsset.code, bAsset.issuer_account, cAsset.code, cAsset.issuer_account;
+GROUP BY bAsset.code, bAsset.issuer_account, bAsset.type, cAsset.code, cAsset.issuer_account, cAsset.type;
 `
 
 var aggMarketQuery = `
