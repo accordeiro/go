@@ -91,6 +91,24 @@ type FinalAsset struct {
 	Status                      string     `json:"status"`
 }
 
+// OrderbookStats represents the Orderbook stats for a given asset
+type OrderbookStats struct {
+	BaseAssetCode      string
+	BaseAssetType      string
+	BaseAssetIssuer    string
+	CounterAssetCode   string
+	CounterAssetType   string
+	CounterAssetIssuer string
+	NumBids            int
+	BidVolume          float64
+	BidMax             float64
+	NumAsks            int
+	AskVolume          float64
+	AskMin             float64
+	Spread             float64
+	SpreadMidPoint     float64
+}
+
 // FetchAllAssets fetches assets from the Horizon public net. If limit = 0, will fetch all assets.
 func (c *ScraperConfig) FetchAllAssets(limit int, parallelism int) (assets []FinalAsset, err error) {
 	dirtyAssets, err := c.retrieveAssets(limit)
