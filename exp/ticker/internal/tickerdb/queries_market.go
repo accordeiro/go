@@ -111,7 +111,14 @@ SELECT
 	COALESCE(open_price_7d, 0.0) as open_price_7d,
 
 	COALESCE(last_price, 0.0) as last_price,
-	COALESCE(last_close_time, now()) as close_time
+	COALESCE(last_close_time, now()) as close_time,
+
+	COALESCE(num_bids, 0) as num_bids,
+	COALESCE(bid_volume, 0.0) as bid_volume,
+	COALESCE(highest_bid, 0.0) as highest_bid,
+	COALESCE(num_asks, 0) as num_asks,
+	COALESCE(ask_volume, 0.0) as ask_volume,
+	COALESCE(lowest_ask, 0.0) as lowest_ask
 FROM (
 	SELECT
 			-- All valid trades for 24h period
@@ -142,8 +149,16 @@ FROM (
 			max(t.price) AS highest_price_7d,
 			min(t.price) AS lowest_price_7d,
 			(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price_7d,
-			((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change_7d
+			((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change_7d,
+			sum(os.num_bids) AS num_bids,
+			sum(os.bid_volume) AS bid_volume,
+			max(os.highest_bid) AS highest_bid,
+			sum(os.num_asks) AS num_asks,
+			sum(os.ask_volume) AS ask_volume,
+			min(os.lowest_ask) AS lowest_ask
 		FROM trades AS t
+			LEFT JOIN orderbook_stats AS os
+				ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
 			JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 			JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
 		WHERE bAsset.is_valid = TRUE

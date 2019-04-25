@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	horizonclient "github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/exp/ticker/internal/utils"
 	hProtocol "github.com/stellar/go/protocols/horizon"
 )
 
@@ -67,18 +68,8 @@ func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSumm
 		}
 	}
 
-	obStats.Spread, obStats.SpreadMidPoint = calcSpread(obStats.HighestBid, obStats.LowestAsk)
+	obStats.Spread, obStats.SpreadMidPoint = utils.CalcSpread(obStats.HighestBid, obStats.LowestAsk)
 	return nil
-}
-
-// calcSpread calculates the spread stats for the given bidMax and askMin orderbook values
-func calcSpread(bidMax float64, askMin float64) (spread float64, midPoint float64) {
-	if askMin == 0 || bidMax == 0 {
-		return 0, 0
-	}
-	spread = math.Abs(askMin-bidMax) / askMin
-	midPoint = bidMax + spread/2.0
-	return
 }
 
 // createOrderbookRequest generates a horizonclient.OrderBookRequest based on the base

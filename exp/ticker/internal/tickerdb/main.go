@@ -118,6 +118,12 @@ type Market struct {
 	PriceChange7d      float64   `db:"price_change_7d"`
 	LastPriceCloseTime time.Time `db:"close_time"`
 	LastPrice          float64   `db:"last_price"`
+	NumBids            int       `db:"num_bids"`
+	BidVolume          float64   `db:"bid_volume"`
+	HighestBid         float64   `db:"highest_bid"`
+	NumAsks            int       `db:"num_asks"`
+	AskVolume          float64   `db:"ask_volume"`
+	LowestAsk          float64   `db:"lowest_ask"`
 }
 
 // PartialMarket represents the aggregated market data for a
