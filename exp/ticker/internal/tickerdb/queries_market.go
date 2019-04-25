@@ -205,8 +205,15 @@ SELECT
 	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
 	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
 	(now() - interval '__NUMHOURS__ hours') AS interval_start,
-	min(t.ledger_close_time) AS first_ledger_close_time
+	min(t.ledger_close_time) AS first_ledger_close_time,
+	COALESCE(sum(os.num_bids), 0) AS num_bids,
+	COALESCE(sum(os.bid_volume), 0.0) AS bid_volume,
+	COALESCE(max(os.highest_bid), 0.0) AS highest_bid,
+	COALESCE(sum(os.num_asks), 0) AS num_asks,
+	COALESCE(sum(os.ask_volume), 0.0) AS ask_volume,
+	COALESCE(min(os.lowest_ask), 0.0) AS lowest_ask
 FROM trades AS t
+	LEFT JOIN orderbook_stats AS os ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
 __WHERECLAUSE__
@@ -225,8 +232,15 @@ SELECT
 	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
 	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
 	(now() - interval '__NUMHOURS__ hours') AS interval_start,
-	min(t.ledger_close_time) AS first_ledger_close_time
+	min(t.ledger_close_time) AS first_ledger_close_time,
+	COALESCE(sum(os.num_bids), 0) AS num_bids,
+	COALESCE(sum(os.bid_volume), 0.0) AS bid_volume,
+	COALESCE(max(os.highest_bid), 0.0) AS highest_bid,
+	COALESCE(sum(os.num_asks), 0) AS num_asks,
+	COALESCE(sum(os.ask_volume), 0.0) AS ask_volume,
+	COALESCE(min(os.lowest_ask), 0.0) AS lowest_ask
 FROM trades AS t
+	LEFT JOIN orderbook_stats AS os ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
 	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
 __WHERECLAUSE__
