@@ -82,6 +82,22 @@ type Trade struct {
 	Price           float64   `db:"price"`
 }
 
+// OrderbookStats represents an entry on the orderbook_stats table
+type OrderbookStats struct {
+	ID             int32     `db:"id"`
+	BaseAssetID    int32     `db:"base_asset_id"`
+	CounterAssetID int32     `db:"counter_asset_id"`
+	NumBids        int       `db:"num_bids"`
+	BidVolume      float64   `db:"bid_volume"`
+	HighestBid     float64   `db:"highest_bid"`
+	NumAsks        int       `db:"num_asks"`
+	AskVolume      float64   `db:"ask_volume"`
+	LowestAsk      float64   `db:"lowest_ask"`
+	Spread         float64   `db:"spread"`
+	SpreadMidPoint float64   `db:"spread_mid_point"`
+	UpdatedAt      time.Time `db:"updated_at"`
+}
+
 // Market represent the aggregated market data retrieved from the database.
 // Note: this struct does *not* directly map to a db entity.
 type Market struct {

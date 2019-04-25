@@ -8,6 +8,7 @@
 // migrations/20190409172610-rename_assets_desc_description.sql
 // migrations/20190410094830-add_assets_issuer_account_field.sql
 // migrations/20190411165735-data_seed_and_indices.sql
+// migrations/20190425110313-add_orderbook_stats.sql
 
 package bdata
 
@@ -406,6 +407,46 @@ func bindataMigrations20190411165735dataseedandindicessql() (*asset, error) {
 	return a, nil
 }
 
+var _bindataMigrations20190425110313addorderbookstatssql = []byte(
+	"\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x92\xcd\x6e\xea\x30\x10\x85\xf7\x7e\x8a\x59\x82\x2e\xdc\x17\x60\x95" +
+		"\x4b\x7c\x25\xd4\x34\xa1\x26\x59\xb0\xb2\x1c\x3c\x0a\xa3\xfc\x38\xf2\x38\x45\xed\xd3\x57\x44\x15\x15\x69\x0b\x55" +
+		"\xd7\x3e\xe7\x7c\x23\xf9\x13\xcb\x25\xfc\x69\xa9\xf2\x26\x20\x14\xbd\x58\x2b\x19\xe5\x12\xf2\xe8\x5f\x22\xc1\x79" +
+		"\x8b\xbe\x74\xae\xd6\x1c\x4c\x60\x98\x09\x00\x00\xb2\xc0\xe8\xc9\x34\x90\x66\x39\xa4\x45\x92\xc0\x56\x6d\x1e\x23" +
+		"\xb5\x87\x07\xb9\x5f\x88\x31\x54\x1a\x46\x6d\x98\x31\x68\xb2\x40\x5d\xc0\x0a\x3d\x28\xf9\x5f\x2a\x99\xae\xe5\x0e" +
+		"\xc6\x37\x86\x19\xd9\xf9\x65\x67\x31\x56\x0f\x6e\xe8\x02\xfa\x5f\xb4\xc7\x7a\x37\xb4\xba\x24\xcb\x50\x52\x45\x5d" +
+		"\x98\x8c\x97\x64\xf5\xb3\x6b\x86\x16\xc1\xba\xa1\x6c\x10\x7a\x8f\x07\x62\x72\xdd\x24\x79\xa4\xea\x88\x1c\xce\x5b" +
+		"\xb7\xa2\x17\xa6\xe1\xfa\x1b\xa6\xe1\xfa\x87\xcc\xc6\x9d\xce\x48\xc3\xf5\x5d\x24\xf7\x1e\xcd\xcd\xcb\x3e\x52\xba" +
+		"\x25\xab\x7b\x77\xbe\xec\xde\xec\xd0\x5b\x13\xd0\x6a\x13\x20\x50\x8b\x1c\x4c\xdb\x87\xd7\x4b\x4a\xcc\x57\x22\x4a" +
+		"\x72\xa9\xde\x0d\xc9\xd2\x64\x0f\xfd\x50\x36\x74\xf8\x3b\xb1\x65\x9c\x8b\xe2\x18\xd6\x59\xba\xcb\x55\xb4\x49\xf3" +
+		"\xa9\x50\x7a\xb4\xe4\xfa\xbf\x6b\x7c\x81\x22\xdd\x3c\x15\x12\x66\x57\x12\x2d\x3e\x89\x31\x5f\x89\x2b\x7d\x63\x77" +
+		"\xea\x44\xac\xb2\xed\xd7\xfa\xae\xc4\x5b\x00\x00\x00\xff\xff\x06\x01\x94\xcd\xed\x02\x00\x00")
+
+func bindataMigrations20190425110313addorderbookstatssqlBytes() ([]byte, error) {
+	return bindataRead(
+		_bindataMigrations20190425110313addorderbookstatssql,
+		"migrations/20190425110313-add_orderbook_stats.sql",
+	)
+}
+
+func bindataMigrations20190425110313addorderbookstatssql() (*asset, error) {
+	bytes, err := bindataMigrations20190425110313addorderbookstatssqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{
+		name:        "migrations/20190425110313-add_orderbook_stats.sql",
+		size:        749,
+		md5checksum: "",
+		mode:        os.FileMode(420),
+		modTime:     time.Unix(1556201297, 0),
+	}
+
+	a := &asset{bytes: bytes, info: info}
+
+	return a, nil
+}
+
 //
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
@@ -477,6 +518,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20190409172610-rename_assets_desc_description.sql":  bindataMigrations20190409172610renameassetsdescdescriptionsql,
 	"migrations/20190410094830-add_assets_issuer_account_field.sql": bindataMigrations20190410094830addassetsissueraccountfieldsql,
 	"migrations/20190411165735-data_seed_and_indices.sql":           bindataMigrations20190411165735dataseedandindicessql,
+	"migrations/20190425110313-add_orderbook_stats.sql":             bindataMigrations20190425110313addorderbookstatssql,
 }
 
 //
@@ -539,6 +581,7 @@ var _bintree = &bintree{Func: nil, Children: map[string]*bintree{
 		"20190409172610-rename_assets_desc_description.sql":  {Func: bindataMigrations20190409172610renameassetsdescdescriptionsql, Children: map[string]*bintree{}},
 		"20190410094830-add_assets_issuer_account_field.sql": {Func: bindataMigrations20190410094830addassetsissueraccountfieldsql, Children: map[string]*bintree{}},
 		"20190411165735-data_seed_and_indices.sql":           {Func: bindataMigrations20190411165735dataseedandindicessql, Children: map[string]*bintree{}},
+		"20190425110313-add_orderbook_stats.sql":             {Func: bindataMigrations20190425110313addorderbookstatssql, Children: map[string]*bintree{}},
 	}},
 }}
 
