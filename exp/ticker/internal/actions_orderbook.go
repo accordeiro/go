@@ -19,7 +19,7 @@ func RefreshOrderbookEntries(s *tickerdb.TickerSession, c *horizonclient.Client,
 	}
 
 	// Retrieve relevant markets for the past 7 days (168 hours):
-	mkts, err := s.RetrievePartialMarkets(nil, nil, nil, nil, 168)
+	mkts, err := s.Retrieve7DRelevantMarkets()
 	if err != nil {
 		return errors.Wrap(err, "could not retrieve partial markets")
 	}

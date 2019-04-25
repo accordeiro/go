@@ -91,6 +91,23 @@ func (s *TickerSession) RetrievePartialMarkets(
 	return
 }
 
+// Retrieve7DRelevantMarkets retrieves the base and counter asset data of the markets
+// that were relevant in the last 7-day period.
+func (s *TickerSession) Retrieve7DRelevantMarkets() (partialMkts []PartialMarket, err error) {
+	q := `
+	SELECT
+		ba.id as base_asset_id, ba.type AS base_asset_type, ba.code AS base_asset_code, ba.issuer_account AS base_asset_issuer,
+		ca.id as counter_asset_id, ca.type AS counter_asset_type, ca.code AS counter_asset_code, ca.issuer_account AS counter_asset_issuer
+	FROM trades as t
+		JOIN assets AS ba ON t.base_asset_id = ba.id
+		JOIN assets AS ca ON t.counter_asset_id = ca.id
+	WHERE ba.is_valid = TRUE AND ca.is_valid = TRUE AND t.ledger_close_time > now() - interval '7 days'
+	GROUP BY ba.id, ba.type, ba.code, ba.issuer_account, ca.id, ca.type, ca.code, ca.issuer_account
+	`
+	err = s.SelectRaw(&partialMkts, q)
+	return
+}
+
 var marketQuery = `
 SELECT
 	t2.trade_pair_name,
