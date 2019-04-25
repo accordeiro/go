@@ -1,7 +1,7 @@
 package ticker
 
 import (
-	"fmt"
+	"time"
 
 	horizonclient "github.com/stellar/go/exp/clients/horizon"
 	"github.com/stellar/go/exp/ticker/internal/scraper"
@@ -10,20 +10,20 @@ import (
 	hlog "github.com/stellar/go/support/log"
 )
 
-// UpdateOrderbookEntries updates the orderbook entries for the relevant markets that were active
+// RefreshOrderbookEntries updates the orderbook entries for the relevant markets that were active
 // in the past 7-day interval
-func UpdateOrderbookEntries(s *tickerdb.TickerSession, c *horizonclient.Client, l *hlog.Entry) error {
+func RefreshOrderbookEntries(s *tickerdb.TickerSession, c *horizonclient.Client, l *hlog.Entry) error {
 	sc := scraper.ScraperConfig{
 		Client: c,
 		Logger: l,
 	}
 
+	// Retrieve relevant markets for the past 7 days (168 hours):
 	mkts, err := s.RetrievePartialMarkets(nil, nil, nil, nil, 168)
 	if err != nil {
 		return errors.Wrap(err, "could not retrieve partial markets")
 	}
 
-	var orderbooks []scraper.OrderbookStats
 	for _, mkt := range mkts {
 		ob, err := sc.FetchOrderbookForAssets(
 			mkt.BaseAssetType,
@@ -33,14 +33,32 @@ func UpdateOrderbookEntries(s *tickerdb.TickerSession, c *horizonclient.Client, 
 			mkt.CounterAssetCode,
 			mkt.CounterAssetIssuer,
 		)
-
 		if err != nil {
-			return errors.Wrap(err, "could not fetch orderbook for assets")
+			l.Error(errors.Wrap(err, "could not fetch orderbook for assets"))
 		}
 
-		orderbooks = append(orderbooks, ob)
+		dbOS := orderbookStatsToDBOrderbookStats(ob, mkt.BaseAssetID, mkt.CounterAssetID)
+		err = s.InsertOrUpdateOrderbookStats(&dbOS, []string{"base_asset_id", "counter_asset_id"})
+		if err != nil {
+			l.Error(errors.Wrap(err, "could not insert orderbook stats into db"))
+		}
 	}
 
-	fmt.Println(orderbooks)
 	return nil
+}
+
+func orderbookStatsToDBOrderbookStats(os scraper.OrderbookStats, bID, cID int32) tickerdb.OrderbookStats {
+	return tickerdb.OrderbookStats{
+		BaseAssetID:    bID,
+		CounterAssetID: cID,
+		NumBids:        os.NumBids,
+		BidVolume:      os.BidVolume,
+		HighestBid:     os.HighestBid,
+		NumAsks:        os.NumAsks,
+		AskVolume:      os.AskVolume,
+		LowestAsk:      os.LowestAsk,
+		Spread:         os.Spread,
+		SpreadMidPoint: os.SpreadMidPoint,
+		UpdatedAt:      time.Now(),
+	}
 }
