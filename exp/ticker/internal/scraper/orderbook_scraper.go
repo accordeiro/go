@@ -9,8 +9,8 @@ import (
 	hProtocol "github.com/stellar/go/protocols/horizon"
 )
 
-// FetchOrderbookForAssets fetches the orderbook stats for the base and counter assets provided in the parameters
-func (c *ScraperConfig) FetchOrderbookForAssets(bType, bCode, bIssuer, cType, cCode, cIssuer string) (OrderbookStats, error) {
+// fetchOrderbook fetches the orderbook stats for the base and counter assets provided in the parameters
+func (c *ScraperConfig) fetchOrderbook(bType, bCode, bIssuer, cType, cCode, cIssuer string) (OrderbookStats, error) {
 	obStats := OrderbookStats{
 		BaseAssetCode:      bType,
 		BaseAssetType:      bCode,
@@ -18,8 +18,8 @@ func (c *ScraperConfig) FetchOrderbookForAssets(bType, bCode, bIssuer, cType, cC
 		CounterAssetCode:   cType,
 		CounterAssetType:   cCode,
 		CounterAssetIssuer: cIssuer,
-		BidMax:             math.Inf(-1), // start with -Inf to make sure we catch the correct max bid
-		AskMin:             math.Inf(1),  // start with +Inf to make sure we catch the correct min ask
+		HighestBid:         math.Inf(-1), // start with -Inf to make sure we catch the correct max bid
+		LowestAsk:          math.Inf(1),  // start with +Inf to make sure we catch the correct min ask
 	}
 	r, err := createOrderbookRequest(bType, bCode, bIssuer, cType, cCode, cIssuer)
 	if err != nil {
@@ -39,7 +39,7 @@ func (c *ScraperConfig) FetchOrderbookForAssets(bType, bCode, bIssuer, cType, cC
 func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSummary) error {
 	obStats.NumBids = len(summary.Bids)
 	if obStats.NumBids == 0 {
-		obStats.BidMax = 0
+		obStats.HighestBid = 0
 	}
 	for _, bid := range summary.Bids {
 		pricef, err := strconv.ParseFloat(bid.Price, 64)
@@ -47,14 +47,14 @@ func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSumm
 			return errors.Wrap(err, "invalid bid price")
 		}
 		obStats.BidVolume += pricef
-		if pricef > obStats.BidMax {
-			obStats.BidMax = pricef
+		if pricef > obStats.HighestBid {
+			obStats.HighestBid = pricef
 		}
 	}
 
 	obStats.NumAsks = len(summary.Asks)
 	if obStats.NumAsks == 0 {
-		obStats.AskMin = 0
+		obStats.LowestAsk = 0
 	}
 	for _, ask := range summary.Asks {
 		pricef, err := strconv.ParseFloat(ask.Price, 64)
@@ -62,12 +62,12 @@ func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSumm
 			return errors.Wrap(err, "invalid ask price")
 		}
 		obStats.AskVolume += pricef
-		if pricef < obStats.AskMin {
-			obStats.AskMin = pricef
+		if pricef < obStats.LowestAsk {
+			obStats.LowestAsk = pricef
 		}
 	}
 
-	obStats.Spread, obStats.SpreadMidPoint = calcSpread(obStats.BidMax, obStats.AskMin)
+	obStats.Spread, obStats.SpreadMidPoint = calcSpread(obStats.HighestBid, obStats.LowestAsk)
 	return nil
 }
 

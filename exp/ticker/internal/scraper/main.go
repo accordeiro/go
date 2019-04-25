@@ -101,10 +101,10 @@ type OrderbookStats struct {
 	CounterAssetIssuer string
 	NumBids            int
 	BidVolume          float64
-	BidMax             float64
+	HighestBid         float64
 	NumAsks            int
 	AskVolume          float64
-	AskMin             float64
+	LowestAsk          float64
 	Spread             float64
 	SpreadMidPoint     float64
 }
@@ -144,4 +144,10 @@ func (c *ScraperConfig) FetchAllTrades(since time.Time, limit int) (trades []hPr
 func (c *ScraperConfig) StreamNewTrades(cursor string, h horizonclient.TradeHandler) error {
 	c.Logger.Info("Starting to stream trades with cursor at:", cursor)
 	return c.streamTrades(h, cursor)
+}
+
+// FetchOrderbookForAssets fetches the orderbook stats for the base and counter assets provided in the parameters
+func (c *ScraperConfig) FetchOrderbookForAssets(bType, bCode, bIssuer, cType, cCode, cIssuer string) (OrderbookStats, error) {
+	c.Logger.Infof("Fetching orderbook info for %s:%s / %s:%s\n", bCode, bIssuer, cCode, cIssuer)
+	return c.fetchOrderbook(bType, bCode, bIssuer, cType, cCode, cIssuer)
 }
