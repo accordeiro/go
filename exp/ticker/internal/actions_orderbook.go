@@ -3,7 +3,7 @@ package ticker
 import (
 	"time"
 
-	horizonclient "github.com/stellar/go/exp/clients/horizon"
+	horizonclient "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/exp/ticker/internal/scraper"
 	"github.com/stellar/go/exp/ticker/internal/tickerdb"
 	"github.com/stellar/go/support/errors"
