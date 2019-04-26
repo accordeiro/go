@@ -130,12 +130,12 @@ SELECT
 	COALESCE(last_price, 0.0) as last_price,
 	COALESCE(last_close_time, now()) as close_time,
 
-	COALESCE(num_bids, 0) as num_bids,
-	COALESCE(bid_volume, 0.0) as bid_volume,
-	COALESCE(highest_bid, 0.0) as highest_bid,
-	COALESCE(num_asks, 0) as num_asks,
-	COALESCE(ask_volume, 0.0) as ask_volume,
-	COALESCE(lowest_ask, 0.0) as lowest_ask
+	COALESCE(os.num_bids, 0) as num_bids,
+	COALESCE(os.bid_volume, 0.0) as bid_volume,
+	COALESCE(os.highest_bid, 0.0) as highest_bid,
+	COALESCE(os.num_asks, 0) as num_asks,
+	COALESCE(os.ask_volume, 0.0) as ask_volume,
+	COALESCE(os.lowest_ask, 0.0) as lowest_ask
 FROM (
 	SELECT
 			-- All valid trades for 24h period
@@ -166,13 +166,7 @@ FROM (
 			max(t.price) AS highest_price_7d,
 			min(t.price) AS lowest_price_7d,
 			(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price_7d,
-			((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change_7d,
-			sum(os.num_bids) AS num_bids,
-			sum(os.bid_volume) AS bid_volume,
-			max(os.highest_bid) AS highest_bid,
-			sum(os.num_asks) AS num_asks,
-			sum(os.ask_volume) AS ask_volume,
-			min(os.lowest_ask) AS lowest_ask
+			((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change_7d
 		FROM trades AS t
 			LEFT JOIN orderbook_stats AS os
 				ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
@@ -182,7 +176,8 @@ FROM (
 			AND cAsset.is_valid = TRUE
 			AND t.ledger_close_time > now() - interval '7 days'
 		GROUP BY trade_pair_name
-	) t2 ON t1.trade_pair_name = t2.trade_pair_name;
+	) t2 ON t1.trade_pair_name = t2.trade_pair_name
+	LEFT JOIN aggregated_orderbook AS os ON t2.trade_pair_name = os.trade_pair_name;
 `
 
 var partialMarketQuery = `
