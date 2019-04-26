@@ -9,6 +9,7 @@
 // migrations/20190410094830-add_assets_issuer_account_field.sql
 // migrations/20190411165735-data_seed_and_indices.sql
 // migrations/20190425110313-add_orderbook_stats.sql
+// migrations/20190426092321-add_aggregated_orderbook_view.sql
 
 package bdata
 
@@ -439,7 +440,48 @@ func bindataMigrations20190425110313addorderbookstatssql() (*asset, error) {
 		size:        749,
 		md5checksum: "",
 		mode:        os.FileMode(420),
-		modTime:     time.Unix(1556201297, 0),
+		modTime:     time.Unix(1556222869, 0),
+	}
+
+	a := &asset{bytes: bytes, info: info}
+
+	return a, nil
+}
+
+var _bindataMigrations20190426092321addaggregatedorderbookviewsql = []byte(
+	"\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x93\xcf\x6e\xb2\x40\x14\xc5\xf7\x3c\xc5\xdd\xa9\xf9\xd0\x7c\x7b\xd3" +
+		"\x05\xc5\xb1\xa1\xb1\x62\x40\xfb\x67\x35\xb9\x30\x13\x9c\x20\x8c\xe1\x0e\xb5\x8f\xdf\x0c\x44\x81\x88\x65\x45\x0e" +
+		"\xf7\x77\x39\x99\x73\xc6\x99\xcf\xe1\x5f\xa1\xb2\x0a\x8d\x84\xc3\xd9\xf1\x23\xe6\xed\x19\x84\x11\x44\x6c\xb7\xf1" +
+		"\x7c\x06\xef\x01\xfb\x00\xcc\xb2\x4a\x66\x68\xa4\xe0\xba\x12\xb2\x4a\xb4\xce\xc1\x8b\x1d\x00\x80\x98\x6d\x98\xbf" +
+		"\x6f\x5e\xed\x93\xea\x32\x45\x33\x4d\x3c\x22\x69\x16\xa9\x16\xd2\x85\x09\x9f\xb8\x90\x76\xca\x0c\x90\xc0\x54\x28" +
+		"\x24\x3f\xa3\xaa\x78\x89\x85\x74\x6f\x1b\x7a\xa8\x9d\x4b\x90\x24\x47\x2b\xf1\x66\x5b\xf7\xa7\xe1\x5c\xaa\xeb\xd2" +
+		"\xc8\x6a\x74\xd4\x0f\xbd\x0d\x8b\x7d\x36\xa5\xba\x98\x6a\x5a\x94\x75\xc1\x13\x25\x68\xe6\xc2\xff\x19\x78\x31\x5c" +
+		"\x85\xc7\x48\xa2\x04\xff\xd6\xa7\xba\x90\x16\x5a\xb4\x58\x27\x8e\x80\x05\xfe\x58\xf0\xa8\xb2\xa3\x24\x63\xd7\xf7" +
+		"\xc8\x9e\xfa\xb7\x4d\xa4\x7c\x68\xd3\x0a\x8f\x11\xa4\xfc\xde\x66\x27\x8e\xd9\x54\xa5\x05\x4f\xfa\x62\xfd\x20\xe5" +
+		"\x3d\xb0\x13\x1b\x6e\x1d\x85\x6f\x70\x2b\x00\x27\x83\x86\xec\x98\xa6\xe6\xf3\x6b\x18\x6c\xa1\x39\xfe\x46\x6d\x73" +
+		"\x84\x70\x0b\xf6\xf8\xba\x14\x95\x80\xa7\x6b\xc8\x4a\x8c\x91\x6d\xb2\xa0\x4b\x4b\x0e\x73\x6d\xe0\x74\x00\xbf\x44" +
+		"\xe1\x61\x07\xcf\x5f\x77\x8d\xba\xab\xce\x48\x47\x96\xce\xe0\x0a\xac\xf4\xa5\x74\x56\x51\xb8\x6b\x7b\x1f\xac\x81" +
+		"\x7d\x06\xf1\x3e\x1e\xbd\x01\x4b\xe7\x37\x00\x00\xff\xff\x72\xc3\x7e\xff\x3f\x03\x00\x00")
+
+func bindataMigrations20190426092321addaggregatedorderbookviewsqlBytes() ([]byte, error) {
+	return bindataRead(
+		_bindataMigrations20190426092321addaggregatedorderbookviewsql,
+		"migrations/20190426092321-add_aggregated_orderbook_view.sql",
+	)
+}
+
+func bindataMigrations20190426092321addaggregatedorderbookviewsql() (*asset, error) {
+	bytes, err := bindataMigrations20190426092321addaggregatedorderbookviewsqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{
+		name:        "migrations/20190426092321-add_aggregated_orderbook_view.sql",
+		size:        831,
+		md5checksum: "",
+		mode:        os.FileMode(420),
+		modTime:     time.Unix(1556281586, 0),
 	}
 
 	a := &asset{bytes: bytes, info: info}
@@ -519,6 +561,7 @@ var _bindata = map[string]func() (*asset, error){
 	"migrations/20190410094830-add_assets_issuer_account_field.sql": bindataMigrations20190410094830addassetsissueraccountfieldsql,
 	"migrations/20190411165735-data_seed_and_indices.sql":           bindataMigrations20190411165735dataseedandindicessql,
 	"migrations/20190425110313-add_orderbook_stats.sql":             bindataMigrations20190425110313addorderbookstatssql,
+	"migrations/20190426092321-add_aggregated_orderbook_view.sql":   bindataMigrations20190426092321addaggregatedorderbookviewsql,
 }
 
 //
@@ -582,6 +625,7 @@ var _bintree = &bintree{Func: nil, Children: map[string]*bintree{
 		"20190410094830-add_assets_issuer_account_field.sql": {Func: bindataMigrations20190410094830addassetsissueraccountfieldsql, Children: map[string]*bintree{}},
 		"20190411165735-data_seed_and_indices.sql":           {Func: bindataMigrations20190411165735dataseedandindicessql, Children: map[string]*bintree{}},
 		"20190425110313-add_orderbook_stats.sql":             {Func: bindataMigrations20190425110313addorderbookstatssql, Children: map[string]*bintree{}},
+		"20190426092321-add_aggregated_orderbook_view.sql":   {Func: bindataMigrations20190426092321addaggregatedorderbookviewsql, Children: map[string]*bintree{}},
 	}},
 }}
 

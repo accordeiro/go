@@ -206,12 +206,12 @@ SELECT
 	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
 	(now() - interval '__NUMHOURS__ hours') AS interval_start,
 	min(t.ledger_close_time) AS first_ledger_close_time,
-	COALESCE(sum(os.num_bids), 0) AS num_bids,
-	COALESCE(sum(os.bid_volume), 0.0) AS bid_volume,
-	COALESCE(max(os.highest_bid), 0.0) AS highest_bid,
-	COALESCE(sum(os.num_asks), 0) AS num_asks,
-	COALESCE(sum(os.ask_volume), 0.0) AS ask_volume,
-	COALESCE(min(os.lowest_ask), 0.0) AS lowest_ask
+	COALESCE((array_agg(os.num_bids))[1], 0) AS num_bids,
+	COALESCE((array_agg(os.bid_volume))[1], 0.0) AS bid_volume,
+	COALESCE((array_agg(os.highest_bid))[1], 0.0) AS highest_bid,
+	COALESCE((array_agg(os.num_asks))[1], 0) AS num_asks,
+	COALESCE((array_agg(os.ask_volume))[1], 0.0) AS ask_volume,
+	COALESCE((array_agg(os.lowest_ask))[1], 0.0) AS lowest_ask
 FROM trades AS t
 	LEFT JOIN orderbook_stats AS os ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
 	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
@@ -221,27 +221,23 @@ GROUP BY bAsset.id, bAsset.code, bAsset.issuer_account, bAsset.type, cAsset.id, 
 `
 
 var aggMarketQuery = `
-SELECT
-	concat(bAsset.code, '_', cAsset.code) as trade_pair_name,
-	sum(t.base_amount) AS base_volume,
-	sum(t.counter_amount) AS counter_volume,
-	count(t.base_amount) AS trade_count,
-	max(t.price) AS highest_price,
-	min(t.price) AS lowest_price,
-	(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
-	(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
-	((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
-	(now() - interval '__NUMHOURS__ hours') AS interval_start,
-	min(t.ledger_close_time) AS first_ledger_close_time,
-	COALESCE(sum(os.num_bids), 0) AS num_bids,
-	COALESCE(sum(os.bid_volume), 0.0) AS bid_volume,
-	COALESCE(max(os.highest_bid), 0.0) AS highest_bid,
-	COALESCE(sum(os.num_asks), 0) AS num_asks,
-	COALESCE(sum(os.ask_volume), 0.0) AS ask_volume,
-	COALESCE(min(os.lowest_ask), 0.0) AS lowest_ask
-FROM trades AS t
-	LEFT JOIN orderbook_stats AS os ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
-	JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
-	JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
-__WHERECLAUSE__
-GROUP BY trade_pair_name;`
+SELECT * FROM (
+	SELECT
+		concat(bAsset.code, '_', cAsset.code) as trade_pair_name,
+		sum(t.base_amount) AS base_volume,
+		sum(t.counter_amount) AS counter_volume,
+		count(t.base_amount) AS trade_count,
+		max(t.price) AS highest_price,
+		min(t.price) AS lowest_price,
+		(array_agg(t.price ORDER BY t.ledger_close_time ASC))[1] AS open_price,
+		(array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] AS last_price,
+		((array_agg(t.price ORDER BY t.ledger_close_time DESC))[1] - (array_agg(t.price ORDER BY t.ledger_close_time ASC))[1]) AS price_change,
+		(now() - interval '__NUMHOURS__ hours') AS interval_start,
+		min(t.ledger_close_time) AS first_ledger_close_time
+	FROM trades AS t
+		LEFT JOIN orderbook_stats AS os ON t.base_asset_id = os.base_asset_id AND t.counter_asset_id = os.counter_asset_id
+		JOIN assets AS bAsset ON t.base_asset_id = bAsset.id
+		JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
+	__WHERECLAUSE__
+	GROUP BY trade_pair_name
+) t1 LEFT JOIN aggregated_orderbook AS aob ON t1.trade_pair_name = aob.trade_pair_name;`
