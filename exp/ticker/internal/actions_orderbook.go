@@ -35,6 +35,7 @@ func RefreshOrderbookEntries(s *tickerdb.TickerSession, c *horizonclient.Client,
 		)
 		if err != nil {
 			l.Error(errors.Wrap(err, "could not fetch orderbook for assets"))
+			continue
 		}
 
 		dbOS := orderbookStatsToDBOrderbookStats(ob, mkt.BaseAssetID, mkt.CounterAssetID)
