@@ -38,6 +38,7 @@ func (c *ScraperConfig) fetchOrderbook(bType, bCode, bIssuer, cType, cCode, cIss
 // calcOrderbookStats calculates the NumBids, BidVolume, BidMax, NumAsks, AskVolume and AskMin
 // statistics for a given OrdebookStats instance
 func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSummary) error {
+	// Calculate Bid Data:
 	obStats.NumBids = len(summary.Bids)
 	if obStats.NumBids == 0 {
 		obStats.HighestBid = 0
@@ -53,6 +54,7 @@ func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSumm
 		}
 	}
 
+	// Calculate Ask Data:
 	obStats.NumAsks = len(summary.Asks)
 	if obStats.NumAsks == 0 {
 		obStats.LowestAsk = 0
@@ -69,6 +71,16 @@ func calcOrderbookStats(obStats *OrderbookStats, summary hProtocol.OrderBookSumm
 	}
 
 	obStats.Spread, obStats.SpreadMidPoint = utils.CalcSpread(obStats.HighestBid, obStats.LowestAsk)
+
+	// Clean up remaining infinity values:
+	if math.IsInf(obStats.LowestAsk, 0) {
+		obStats.LowestAsk = 0
+	}
+
+	if math.IsInf(obStats.HighestBid, 0) {
+		obStats.HighestBid = 0
+	}
+
 	return nil
 }
 
