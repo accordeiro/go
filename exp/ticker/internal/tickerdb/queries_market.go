@@ -50,6 +50,7 @@ func (s *TickerSession) RetrievePartialAggMarkets(
 	for i, v := range args {
 		argsInterface[i] = v
 	}
+
 	err = s.SelectRaw(&partialMkts, q, argsInterface...)
 	return
 }
@@ -235,4 +236,4 @@ SELECT * FROM (
 		JOIN assets AS cAsset on t.counter_asset_id = cAsset.id
 	__WHERECLAUSE__
 	GROUP BY trade_pair_name
-) t1 LEFT JOIN aggregated_orderbook AS aob ON t1.trade_pair_name = aob.trade_pair_name;`
+) t1 INNER JOIN aggregated_orderbook AS aob ON t1.trade_pair_name = aob.trade_pair_name;`
