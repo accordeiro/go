@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/csv"
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -28,7 +31,7 @@ type TxInfo struct {
 
 func check(err error) {
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
@@ -158,13 +161,37 @@ func retrieveAllPathPayments(session *sqlx.DB, assetCode string, numDaysAgo int)
 	return assetTxs
 }
 
+func txToStringSlice(tx TxInfo) []string {
+	return []string{
+		tx.SendAssetCode,
+		fmt.Sprint(tx.SendMax),
+		tx.DestAssetCode,
+		fmt.Sprint(tx.DestAmount),
+		fmt.Sprint(tx.LedgerCloseTime),
+	}
+}
+
+func writeTxInfosToCSV(txInfos []TxInfo, outFile string) {
+	file, err := os.Create(outFile)
+	check(err)
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	err = w.Write([]string{"send_asset", "send_max", "dest_asset", "dest_amount", "close_time"})
+	check(err)
+
+	for _, tx := range txInfos {
+		err = w.Write(txToStringSlice(tx))
+		check(err)
+	}
+}
+
 func main() {
 	dbURL := "postgres://stellar:horizon@localhost:8002/horizon?sslmode=disable"
 	session := dbConnect(dbURL)
 
 	assetTxs := retrieveAllPathPayments(session, "EUR", 730)
-	for _, tx := range assetTxs {
-		// TODO: write to CSV instead
-		fmt.Println(tx)
-	}
+	writeTxInfosToCSV(assetTxs, "out.csv")
 }
