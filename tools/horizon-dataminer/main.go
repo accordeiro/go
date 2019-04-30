@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -16,9 +18,9 @@ type Transaction struct {
 
 type TxInfo struct {
 	SendAssetCode string
-	SendMax       int64
+	SendMax       float64
 	DestAssetCode string
-	DestAmount    int64
+	DestAmount    float64
 }
 
 func check(err error) {
@@ -85,6 +87,12 @@ func getAssetCode(asset xdr.Asset) string {
 	}
 }
 
+func parseAmount(amnt xdr.Int64) float64 {
+	amntString := amount.String(amnt)
+	amntFloat, _ := strconv.ParseFloat(amntString, 64)
+	return amntFloat
+}
+
 func parseTxInfo(txEnvelope xdr.TransactionEnvelope) []TxInfo {
 	var txInfos []TxInfo
 	for _, op := range txEnvelope.Tx.Operations {
@@ -92,8 +100,8 @@ func parseTxInfo(txEnvelope xdr.TransactionEnvelope) []TxInfo {
 		if op.Body.Type == xdr.OperationTypePathPayment {
 			pOp := op.Body.PathPaymentOp
 
-			txInfo.SendMax = int64(pOp.SendMax)
-			txInfo.DestAmount = int64(pOp.DestAmount)
+			txInfo.SendMax = parseAmount(pOp.SendMax)
+			txInfo.DestAmount = parseAmount(pOp.DestAmount)
 
 			sendAsset := pOp.SendAsset
 			txInfo.SendAssetCode = getAssetCode(sendAsset)
