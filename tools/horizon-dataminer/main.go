@@ -138,17 +138,33 @@ func txIncludesAsset(txi TxInfo, assetCode string) bool {
 	return false
 }
 
+func retrieveAllPathPayments(session *sqlx.DB, assetCode string, numDaysAgo int) []TxInfo {
+	txs := getTransactionsFromDB(session, numDaysAgo)
+	var assetTxs []TxInfo
+
+	// transactions are XDR-encoded, so we can't filter transactions
+	// for a specific asset directly in the database query.
+	for _, tx := range txs {
+		data := decodeEnvelope(tx.TxEnvelope)
+		txInfos := parseTxInfo(data, tx.LedgerCloseTime)
+
+		for _, txi := range txInfos {
+			if txIncludesAsset(txi, assetCode) {
+				assetTxs = append(assetTxs, txi)
+			}
+		}
+	}
+
+	return assetTxs
+}
+
 func main() {
 	dbURL := "postgres://stellar:horizon@localhost:8002/horizon?sslmode=disable"
 	session := dbConnect(dbURL)
-	txs := getTransactionsFromDB(session, 730) // 2 years
 
-	for _, tx := range txs {
-		data := decodeEnvelope(tx.TxEnvelope)
-		txis := parseTxInfo(data, tx.LedgerCloseTime)
-
-		if txIncludesAsset(txis[0], "EUR") {
-			fmt.Println("Contains EUR:", txis[0])
-		}
+	assetTxs := retrieveAllPathPayments(session, "EUR", 730)
+	for _, tx := range assetTxs {
+		// TODO: write to CSV instead
+		fmt.Println(tx)
 	}
 }
