@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -13,14 +14,16 @@ import (
 )
 
 type Transaction struct {
-	TxEnvelope string `db:"tx_envelope"`
+	TxEnvelope      string    `db:"tx_envelope"`
+	LedgerCloseTime time.Time `db:"closed_at"`
 }
 
 type TxInfo struct {
-	SendAssetCode string
-	SendMax       float64
-	DestAssetCode string
-	DestAmount    float64
+	SendAssetCode   string
+	SendMax         float64
+	DestAssetCode   string
+	DestAmount      float64
+	LedgerCloseTime time.Time
 }
 
 func check(err error) {
@@ -41,7 +44,7 @@ func dbConnect(pgURL string) *sqlx.DB {
 func getTransactionsFromDB(session *sqlx.DB, numDaysAgo int) []Transaction {
 	var txs []Transaction
 	baseQ := `
-		SELECT tx_envelope FROM history_transactions htx
+		SELECT tx_envelope, hl.closed_at FROM history_transactions htx
 		INNER JOIN history_operations hop ON htx.id = hop.transaction_id
 		INNER JOIN history_ledgers hl ON htx.ledger_sequence = hl.sequence
 		WHERE hl.closed_at > now() - interval '%d days' AND hop.type = %d`
@@ -96,12 +99,14 @@ func parseAmount(amnt xdr.Int64) float64 {
 	return amntFloat
 }
 
-func parseTxInfo(txEnvelope xdr.TransactionEnvelope) []TxInfo {
+func parseTxInfo(txEnvelope xdr.TransactionEnvelope, closeTime time.Time) []TxInfo {
 	var txInfos []TxInfo
 	for _, op := range txEnvelope.Tx.Operations {
 		var txInfo TxInfo
 		if op.Body.Type == xdr.OperationTypePathPayment {
 			pOp := op.Body.PathPaymentOp
+
+			txInfo.LedgerCloseTime = closeTime
 
 			txInfo.SendMax = parseAmount(pOp.SendMax)
 			txInfo.DestAmount = parseAmount(pOp.DestAmount)
@@ -140,7 +145,7 @@ func main() {
 
 	for _, tx := range txs {
 		data := decodeEnvelope(tx.TxEnvelope)
-		txis := parseTxInfo(data)
+		txis := parseTxInfo(data, tx.LedgerCloseTime)
 
 		if txIncludesAsset(txis[0], "EUR") {
 			fmt.Println("Contains EUR:", txis[0])
