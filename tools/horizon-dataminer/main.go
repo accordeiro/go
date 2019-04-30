@@ -38,14 +38,17 @@ func dbConnect(pgURL string) *sqlx.DB {
 	return dbconn
 }
 
-func getTransactionsFromDB(session *sqlx.DB) []Transaction {
+func getTransactionsFromDB(session *sqlx.DB, numDaysAgo int) []Transaction {
 	var txs []Transaction
-	err := session.Select(
-		&txs, `
+	baseQ := `
 		SELECT tx_envelope FROM history_transactions htx
 		INNER JOIN history_operations hop ON htx.id = hop.transaction_id
-		WHERE hop.type = `+fmt.Sprintf("%d", xdr.OperationTypePathPayment),
-	)
+		INNER JOIN history_ledgers hl ON htx.ledger_sequence = hl.sequence
+		WHERE hl.closed_at > now() - interval '%d days' AND hop.type = %d`
+
+	q := fmt.Sprintf(baseQ, numDaysAgo, xdr.OperationTypePathPayment)
+
+	err := session.Select(&txs, q)
 	check(err)
 
 	return txs
@@ -133,7 +136,7 @@ func txIncludesAsset(txi TxInfo, assetCode string) bool {
 func main() {
 	dbURL := "postgres://stellar:horizon@localhost:8002/horizon?sslmode=disable"
 	session := dbConnect(dbURL)
-	txs := getTransactionsFromDB(session)
+	txs := getTransactionsFromDB(session, 730) // 2 years
 
 	for _, tx := range txs {
 		data := decodeEnvelope(tx.TxEnvelope)
