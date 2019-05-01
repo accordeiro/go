@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +14,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/stellar/go/amount"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/protocols/horizon/operations"
+
 	"github.com/stellar/go/xdr"
 )
 
@@ -188,10 +192,98 @@ func writeTxInfosToCSV(txInfos []TxInfo, outFile string) {
 	}
 }
 
-func main() {
-	dbURL := "postgres://stellar:horizon@localhost:8002/horizon?sslmode=disable"
-	session := dbConnect(dbURL)
+func nextCursor(nextPageURL string) (cursor string, err error) {
+	u, err := url.Parse(nextPageURL)
+	if err != nil {
+		return
+	}
 
-	assetTxs := retrieveAllPathPayments(session, "EUR", 730)
-	writeTxInfosToCSV(assetTxs, "out.csv")
+	m, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return
+	}
+	cursor = m["cursor"][0]
+
+	return
+}
+
+func filterPathPaymentOps(ops []operations.Operation) []TxInfo {
+	var filteredOps []TxInfo
+	for _, op := range ops {
+		if op.GetType() == operations.TypeNames[xdr.OperationTypePathPayment] {
+			filteredOps = append(
+				filteredOps,
+				pathPaymentToTxInfo(op.(operations.PathPayment)),
+			)
+		}
+	}
+
+	return filteredOps
+}
+
+func pathPaymentToTxInfo(op operations.PathPayment) (txi TxInfo) {
+	txi.LedgerCloseTime = op.Payment.Base.LedgerCloseTime
+	txi.SendMax, _ = strconv.ParseFloat(op.SourceMax, 64)
+	txi.SendAssetCode = op.SourceAssetCode
+	txi.DestAmount, _ = strconv.ParseFloat(op.Payment.Amount, 64)
+	txi.DestAssetCode = op.Payment.Asset.Code
+
+	if txi.SendAssetCode == "" {
+		txi.SendAssetCode = "XLM"
+	}
+
+	if txi.DestAssetCode == "" {
+		txi.DestAssetCode = "XLM"
+	}
+
+	return
+}
+
+func scrapePathPayments() {
+	var pathPayments []TxInfo
+	client := horizonclient.DefaultPublicNetClient
+	opReq := horizonclient.OperationRequest{
+		Order: horizonclient.OrderDesc,
+		Limit: 200,
+	}
+	lastDate := time.Now().AddDate(0, 0, -5)
+
+	opsPage, err := client.Payments(opReq)
+	check(err)
+
+	for opsPage.Links.Next.Href != opsPage.Links.Self.Href {
+		ppOps := filterPathPaymentOps(opsPage.Embedded.Records)
+
+		pathPayments = append(pathPayments, ppOps...)
+
+		// Finding next page's params:
+		nextURL := opsPage.Links.Next.Href
+		n, err := nextCursor(nextURL)
+		check(err)
+
+		fmt.Println("Cursor currently at:", n)
+		opReq.Cursor = n
+
+		opsPage, err = client.Payments(opReq)
+		check(err)
+
+		if len(ppOps) > 0 {
+			oldestDate := ppOps[len(ppOps)-1].LedgerCloseTime
+			if oldestDate.Before(lastDate) {
+				break
+			}
+		}
+	}
+
+	writeTxInfosToCSV(pathPayments, "out.csv")
+}
+
+func main() {
+	scrapePathPayments()
+
+	// dbURL := "postgres://stellar:horizon@localhost:8002/horizon?sslmode=disable"
+	// session := dbConnect(dbURL)
+
+	// assetTxs := retrieveAllPathPayments(session, "EUR", 730)
+	// writeTxInfosToCSV(assetTxs, "out.csv")
 }
