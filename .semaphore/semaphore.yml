@@ -1,56 +1,32 @@
 version: v1.0
-name: First pipeline example
+name: Test and build pipeline
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: "Build"
+  - name: "Test and build the go monorepo packages"
     task:
-      env_vars:
-        - name: APP_ENV
-          value: prod
+      prologue:
+        commands:
+          # Golang setup, required since we're building with Go versions < 1.11:
+          - export "SEMAPHORE_GIT_DIR=$(go env GOPATH)/src/github.com/stellar/${SEMAPHORE_PROJECT_NAME}"
+          - export "PATH=$(go env GOPATH)/bin:${PATH}"
+          - mkdir -vp "${SEMAPHORE_GIT_DIR}" "$(go env GOPATH)/bin"
+
+          # Installing dep and dependencies
+          - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+          # TODO: cache dependencies
+          - checkout
+          - dep ensure -v
       jobs:
-      - name: Docker build
+      - name: Check formatting / code on Go 1.12
         commands:
-          - checkout
-          - ls -1
-          - echo $APP_ENV
-          - echo "Docker build..."
-          - echo "done"
-  - name: "Smoke tests"
-    task:
-      jobs:
-      - name: Smoke
+          - sem-version go 1.12
+          - ./gofmt.sh
+          - ./govet.sh
+
+      - name: Run tests on Go 1.12
         commands:
-          - checkout
-          - echo "make smoke"
-  - name: "Unit tests"
-    task:
-      jobs:
-      - name: RSpec
-        commands:
-          - checkout
-          - echo "make rspec"
-      - name: Lint code
-        commands:
-          - checkout
-          - echo "make lint"
-      - name: Check security
-        commands:
-          - checkout
-          - echo "make security"
-  - name: "Integration tests"
-    task:
-      jobs:
-      - name: Cucumber
-        commands:
-          - checkout
-          - echo "make cucumber"
-  - name: "Push Image"
-    task:
-      jobs:
-      - name: Push
-        commands:
-          - checkout
-          - echo "make docker.push"
+          - sem-version go 1.12
+          - ./support/scripts/run_tests
