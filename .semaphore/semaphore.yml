@@ -9,6 +9,11 @@ blocks:
     task:
       prologue:
         commands:
+          # Start background services:
+          - sem-service start redis
+          - sem-service start postgres
+          - sem-service start mysql
+
           # Golang setup, required since we're building with Go versions < 1.11:
           - export "SEMAPHORE_GIT_DIR=$(go env GOPATH)/src/github.com/stellar/${SEMAPHORE_PROJECT_NAME}"
           - export "PATH=$(go env GOPATH)/bin:${PATH}"
@@ -20,6 +25,9 @@ blocks:
           - checkout
           - dep ensure -v
       jobs:
+      - name: Test createdb
+        commands:
+          - createdb something
       - name: Check formatting / code on Go 1.12
         commands:
           - sem-version go 1.12
