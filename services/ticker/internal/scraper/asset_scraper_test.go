@@ -12,30 +12,32 @@ func TestShouldDiscardAsset(t *testing.T) {
 	testAsset := hProtocol.AssetStat{
 		Amount: "",
 	}
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	c := ScraperConfig{}
+
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount: "0.0",
 	}
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount: "0",
 	}
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount:      "123901.0129310",
 		NumAccounts: 8,
 	}
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount:      "123901.0129310",
 		NumAccounts: 12,
 	}
 	testAsset.Code = "REMOVE"
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount:      "123901.0129310",
@@ -43,7 +45,7 @@ func TestShouldDiscardAsset(t *testing.T) {
 	}
 	testAsset.Code = "SOMETHINGVALID"
 	testAsset.Links.Toml.Href = ""
-	assert.Equal(t, shouldDiscardAsset(testAsset), false)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), false)
 
 	testAsset = hProtocol.AssetStat{
 		Amount:      "123901.0129310",
@@ -51,7 +53,7 @@ func TestShouldDiscardAsset(t *testing.T) {
 	}
 	testAsset.Code = "SOMETHINGVALID"
 	testAsset.Links.Toml.Href = "http://www.stellar.org/.well-known/stellar.toml"
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount:      "123901.0129310",
@@ -59,7 +61,7 @@ func TestShouldDiscardAsset(t *testing.T) {
 	}
 	testAsset.Code = "SOMETHINGVALID"
 	testAsset.Links.Toml.Href = ""
-	assert.Equal(t, shouldDiscardAsset(testAsset), true)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), true)
 
 	testAsset = hProtocol.AssetStat{
 		Amount:      "123901.0129310",
@@ -67,7 +69,7 @@ func TestShouldDiscardAsset(t *testing.T) {
 	}
 	testAsset.Code = "SOMETHINGVALID"
 	testAsset.Links.Toml.Href = "https://www.stellar.org/.well-known/stellar.toml"
-	assert.Equal(t, shouldDiscardAsset(testAsset), false)
+	assert.Equal(t, c.shouldDiscardAsset(testAsset), false)
 }
 
 func TestDomainsMatch(t *testing.T) {

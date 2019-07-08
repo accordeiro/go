@@ -19,7 +19,7 @@ import (
 )
 
 // shouldDiscardAsset maps the criteria for discarding an asset from the asset index
-func shouldDiscardAsset(asset hProtocol.AssetStat) bool {
+func (c *ScraperConfig) shouldDiscardAsset(asset hProtocol.AssetStat) bool {
 	if asset.Amount == "" {
 		return true
 	}
@@ -39,13 +39,17 @@ func shouldDiscardAsset(asset hProtocol.AssetStat) bool {
 	if asset.NumAccounts >= 100 {
 		return false
 	}
-	if asset.Links.Toml.Href == "" {
-		return true
+
+	if c.Client != horizonclient.DefaultTestNetClient { // TOML shouldn't be validated on TestNet
+		if asset.Links.Toml.Href == "" {
+			return true
+		}
+		// [StellarX Ticker]: TOML files should be hosted on HTTPS
+		if !strings.HasPrefix(asset.Links.Toml.Href, "https://") {
+			return true
+		}
 	}
-	// [StellarX Ticker]: TOML files should be hosted on HTTPS
-	if !strings.HasPrefix(asset.Links.Toml.Href, "https://") {
-		return true
-	}
+
 	return false
 }
 
@@ -205,24 +209,23 @@ func makeFinalAsset(
 }
 
 // processAsset merges data from an AssetStat with data retrieved from its corresponding TOML file
-func processAsset(asset hProtocol.AssetStat) (processedAsset FinalAsset, err error) {
+func (c *ScraperConfig) processAsset(asset hProtocol.AssetStat) (processedAsset FinalAsset, err error) {
 	var errors []error
+	var issuer TOMLIssuer
 
-	tomlData, err := fetchTOMLData(asset)
-	if err != nil {
-		errors = append(errors, err)
-	}
+	if c.Client != horizonclient.DefaultTestNetClient { // TOML shouldn't be validated on TestNet
+		tomlData, err := fetchTOMLData(asset)
+		if err != nil {
+			errors = append(errors, err)
+		}
 
-	issuer, err := decodeTOMLIssuer(tomlData)
-	if err != nil {
-		errors = append(errors, err)
+		issuer, err = decodeTOMLIssuer(tomlData)
+		if err != nil {
+			errors = append(errors, err)
+		}
 	}
 
 	processedAsset, err = makeFinalAsset(asset, issuer, errors)
-	if err != nil {
-		return
-	}
-
 	return
 }
 
@@ -248,8 +251,8 @@ func (c *ScraperConfig) parallelProcessAssets(assets []hProtocol.AssetStat, para
 			}
 
 			for j := start; j < end; j++ {
-				if !shouldDiscardAsset(assets[j]) {
-					finalAsset, err := processAsset(assets[j])
+				if !c.shouldDiscardAsset(assets[j]) {
+					finalAsset, err := c.processAsset(assets[j])
 					if err != nil {
 						mutex.Lock()
 						numTrash++
