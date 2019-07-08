@@ -209,7 +209,7 @@ func makeFinalAsset(
 }
 
 // processAsset merges data from an AssetStat with data retrieved from its corresponding TOML file
-func (c *ScraperConfig) processAsset(asset hProtocol.AssetStat) (processedAsset FinalAsset, err error) {
+func (c *ScraperConfig) processAsset(asset hProtocol.AssetStat) (FinalAsset, error) {
 	var errors []error
 	var issuer TOMLIssuer
 
@@ -225,8 +225,7 @@ func (c *ScraperConfig) processAsset(asset hProtocol.AssetStat) (processedAsset 
 		}
 	}
 
-	processedAsset, err = makeFinalAsset(asset, issuer, errors)
-	return
+	return makeFinalAsset(asset, issuer, errors)
 }
 
 // parallelProcessAssets filters the assets that don't match the shouldDiscardAsset criteria.
