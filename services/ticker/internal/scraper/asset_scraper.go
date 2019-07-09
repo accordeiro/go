@@ -19,7 +19,7 @@ import (
 )
 
 // shouldDiscardAsset maps the criteria for discarding an asset from the asset index
-func (c *ScraperConfig) shouldDiscardAsset(asset hProtocol.AssetStat) bool {
+func shouldDiscardAsset(asset hProtocol.AssetStat, shouldValidateTOML bool) bool {
 	if asset.Amount == "" {
 		return true
 	}
@@ -40,7 +40,7 @@ func (c *ScraperConfig) shouldDiscardAsset(asset hProtocol.AssetStat) bool {
 		return false
 	}
 
-	if c.Client != horizonclient.DefaultTestNetClient { // TOML shouldn't be validated on TestNet
+	if shouldValidateTOML {
 		if asset.Links.Toml.Href == "" {
 			return true
 		}
@@ -209,11 +209,11 @@ func makeFinalAsset(
 }
 
 // processAsset merges data from an AssetStat with data retrieved from its corresponding TOML file
-func (c *ScraperConfig) processAsset(asset hProtocol.AssetStat) (FinalAsset, error) {
+func processAsset(asset hProtocol.AssetStat, shouldValidateTOML bool) (FinalAsset, error) {
 	var errors []error
 	var issuer TOMLIssuer
 
-	if c.Client != horizonclient.DefaultTestNetClient { // TOML shouldn't be validated on TestNet
+	if shouldValidateTOML {
 		tomlData, err := fetchTOMLData(asset)
 		if err != nil {
 			errors = append(errors, err)
@@ -232,6 +232,7 @@ func (c *ScraperConfig) processAsset(asset hProtocol.AssetStat) (FinalAsset, err
 // The TOML validation is performed in parallel to improve performance.
 func (c *ScraperConfig) parallelProcessAssets(assets []hProtocol.AssetStat, parallelism int) (cleanAssets []FinalAsset, numTrash int) {
 	queue := make(chan FinalAsset, parallelism)
+	shouldValidateTOML := c.Client != horizonclient.DefaultTestNetClient // TOMLs shouldn't be validated on TestNet
 
 	var mutex = &sync.Mutex{}
 	var wg sync.WaitGroup
@@ -250,8 +251,8 @@ func (c *ScraperConfig) parallelProcessAssets(assets []hProtocol.AssetStat, para
 			}
 
 			for j := start; j < end; j++ {
-				if !c.shouldDiscardAsset(assets[j]) {
-					finalAsset, err := c.processAsset(assets[j])
+				if !shouldDiscardAsset(assets[j], shouldValidateTOML) {
+					finalAsset, err := processAsset(assets[j], shouldValidateTOML)
 					if err != nil {
 						mutex.Lock()
 						numTrash++
