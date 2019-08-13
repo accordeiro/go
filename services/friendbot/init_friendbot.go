@@ -105,9 +105,7 @@ func createMinionAccounts(botAccount internal.Account, botKeypair *keypair.Full,
 			Operations:    ops,
 			Timebounds:    txnbuild.NewTimeout(300),
 			Network:       networkPassphrase,
-		}
-		if baseFee > 0 {
-			txn.BaseFee = baseFee
+			BaseFee:       baseFee,
 		}
 
 		txe, err := txn.BuildSignEncode(botKeypair)

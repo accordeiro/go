@@ -110,9 +110,7 @@ func (minion *Minion) makeTx(destAddress string) (string, error) {
 		Operations:    []txnbuild.Operation{&createAccountOp},
 		Network:       minion.Network,
 		Timebounds:    txnbuild.NewInfiniteTimeout(),
-	}
-	if minion.BaseFee > 0 {
-		txn.BaseFee = minion.BaseFee
+		BaseFee:       minion.BaseFee,
 	}
 
 	txe, err := txn.BuildSignEncode(minion.Keypair, minion.BotKeypair)
