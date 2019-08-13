@@ -5,7 +5,6 @@ import (
 	"fmt"
 	stdhttp "net/http"
 	"os"
-	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
@@ -27,6 +26,7 @@ type Config struct {
 	StartingBalance   string      `toml:"starting_balance" valid:"required"`
 	TLS               *config.TLS `valid:"optional"`
 	NumMinions        int         `toml:"num_minions" valid:"optional"`
+	BaseFee           uint32      `toml:"base_fee" valid:"optional"`
 }
 
 func main() {
@@ -46,7 +46,6 @@ func run(cmd *cobra.Command, args []string) {
 	var (
 		cfg     Config
 		cfgPath = cmd.PersistentFlags().Lookup("conf").Value.String()
-		baseFee uint32
 	)
 	log.SetLevel(log.InfoLevel)
 
@@ -61,18 +60,7 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	baseFeeStr := os.Getenv("BASE_FEE")
-	if baseFeeStr != "" {
-		baseFee64, err := strconv.ParseUint(baseFeeStr, 10, 32)
-
-		if err != nil {
-			log.Error(err)
-			os.Exit(1)
-		}
-
-		baseFee = uint32(baseFee64)
-	}
-	fb, err := initFriendbot(cfg.FriendbotSecret, cfg.NetworkPassphrase, cfg.HorizonURL, cfg.StartingBalance, cfg.NumMinions, baseFee)
+	fb, err := initFriendbot(cfg.FriendbotSecret, cfg.NetworkPassphrase, cfg.HorizonURL, cfg.StartingBalance, cfg.NumMinions, cfg.BaseFee)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
