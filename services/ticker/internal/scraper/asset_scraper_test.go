@@ -137,5 +137,5 @@ func TestIgnoreInvalidTOMLUrls(t *testing.T) {
 	assetStat.Links.Toml = hal.Link{Href: invalidURL}
 
 	_, err := fetchTOMLData(assetStat)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid URL or request: parse https:// there is something wrong here.com/stellar.toml: invalid character \" \" in host name")
 }
