@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	// "errors"
 	"fmt"
 	"io/ioutil"
 	"math"
