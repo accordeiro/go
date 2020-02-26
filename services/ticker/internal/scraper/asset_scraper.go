@@ -69,6 +69,12 @@ func fetchTOMLData(asset hProtocol.AssetStat) (data string, err error) {
 		return
 	}
 
+	_, err = url.ParseRequestURI(tomlURL)
+	if err != nil {
+		err = errors.New("Asset has an invalid TOML URL")
+		return
+	}
+
 	timeout := time.Duration(10 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
