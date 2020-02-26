@@ -69,20 +69,18 @@ func fetchTOMLData(asset hProtocol.AssetStat) (data string, err error) {
 		return
 	}
 
-	_, err = url.ParseRequestURI(tomlURL)
-	if err != nil {
-		err = errors.New("Asset has an invalid TOML URL")
-		return
-	}
-
 	timeout := time.Duration(10 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
 
 	req, err := http.NewRequest("GET", tomlURL, nil)
-	req.Header.Set("User-Agent", "Stellar Ticker v1.0")
+	if err != nil {
+		err = errors.New("Invalid URL or request")
+		return
+	}
 
+	req.Header.Set("User-Agent", "Stellar Ticker v1.0")
 	resp, err := client.Do(req)
 	if err != nil {
 		return
