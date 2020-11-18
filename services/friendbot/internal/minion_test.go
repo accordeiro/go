@@ -12,18 +12,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type MTestMockMinionDispatcher struct{}
+
+func (m *MTestMockMinionDispatcher) SubmitTransaction(minion *Minion, hclient *horizonclient.Client, tx string) (txn *hProtocol.Transaction, err error) {
+	return txn, nil
+}
+
+func (m *MTestMockMinionDispatcher) CheckSequenceRefresh(minion *Minion, hclient *horizonclient.Client) error {
+	return errors.New("could not refresh sequence")
+}
+
 // This test aims to reproduce the issue found on https://github.com/stellar/go/issues/2271
 // in which Minion.Run() will try to send multiple messages to a channel that gets closed
 // immediately after receiving one message.
 func TestMinion_NoChannelErrors(t *testing.T) {
-	mockSubmitTransaction := func(minion *Minion, hclient *horizonclient.Client, tx string) (txn *hProtocol.Transaction, err error) {
-		return txn, nil
-	}
-
-	mockCheckSequenceRefresh := func(minion *Minion, hclient *horizonclient.Client) (err error) {
-		return errors.New("could not refresh sequence")
-	}
-
 	// Public key: GD25B4QI6KWVDWXDW25CIM7EKR6A6PBSWE2RCNSAC4NJQDQJXZJYMMKR
 	botSeed := "SCWNLYELENPBXN46FHYXETT5LJCYBZD5VUQQVW4KZPHFO2YTQJUWT4D5"
 	botKeypair, err := keypair.Parse(botSeed)
@@ -39,19 +41,19 @@ func TestMinion_NoChannelErrors(t *testing.T) {
 		return
 	}
 
+	d := &MTestMockMinionDispatcher{}
 	minion := Minion{
 		Account: Account{
 			AccountID: minionKeypair.Address(),
 			Sequence:  1,
 		},
-		Keypair:              minionKeypair.(*keypair.Full),
-		BotAccount:           botAccount,
-		BotKeypair:           botKeypair.(*keypair.Full),
-		Network:              "Test SDF Network ; September 2015",
-		StartingBalance:      "10000.00",
-		SubmitTransaction:    mockSubmitTransaction,
-		CheckSequenceRefresh: mockCheckSequenceRefresh,
-		BaseFee:              txnbuild.MinBaseFee,
+		Keypair:         minionKeypair.(*keypair.Full),
+		BotAccount:      botAccount,
+		BotKeypair:      botKeypair.(*keypair.Full),
+		Network:         "Test SDF Network ; September 2015",
+		StartingBalance: "10000.00",
+		BaseFee:         txnbuild.MinBaseFee,
+		Dispatcher:      d,
 	}
 	fb := &Bot{Minions: []Minion{minion}}
 
@@ -72,23 +74,23 @@ func TestMinion_NoChannelErrors(t *testing.T) {
 	wg.Wait()
 }
 
+type MTest2MockMinionDispatcher struct {
+	numTxSubmits int
+	mux          sync.Mutex
+}
+
+func (m *MTest2MockMinionDispatcher) SubmitTransaction(minion *Minion, hclient *horizonclient.Client, tx string) (txn *hProtocol.Transaction, err error) {
+	m.mux.Lock()
+	m.numTxSubmits++
+	m.mux.Unlock()
+	return txn, nil
+}
+
+func (m *MTest2MockMinionDispatcher) CheckSequenceRefresh(minion *Minion, hclient *horizonclient.Client) error {
+	return nil
+}
+
 func TestMinion_CorrectNumberOfTxSubmissions(t *testing.T) {
-	var (
-		numTxSubmits int
-		mux          sync.Mutex
-	)
-
-	mockSubmitTransaction := func(minion *Minion, hclient *horizonclient.Client, tx string) (txn *hProtocol.Transaction, err error) {
-		mux.Lock()
-		numTxSubmits++
-		mux.Unlock()
-		return txn, nil
-	}
-
-	mockCheckSequenceRefresh := func(minion *Minion, hclient *horizonclient.Client) (err error) {
-		return nil
-	}
-
 	// Public key: GD25B4QI6KWVDWXDW25CIM7EKR6A6PBSWE2RCNSAC4NJQDQJXZJYMMKR
 	botSeed := "SCWNLYELENPBXN46FHYXETT5LJCYBZD5VUQQVW4KZPHFO2YTQJUWT4D5"
 	botKeypair, err := keypair.Parse(botSeed)
@@ -104,19 +106,20 @@ func TestMinion_CorrectNumberOfTxSubmissions(t *testing.T) {
 		return
 	}
 
+	d := &MTest2MockMinionDispatcher{}
+
 	minion := Minion{
 		Account: Account{
 			AccountID: minionKeypair.Address(),
 			Sequence:  1,
 		},
-		Keypair:              minionKeypair.(*keypair.Full),
-		BotAccount:           botAccount,
-		BotKeypair:           botKeypair.(*keypair.Full),
-		Network:              "Test SDF Network ; September 2015",
-		StartingBalance:      "10000.00",
-		SubmitTransaction:    mockSubmitTransaction,
-		CheckSequenceRefresh: mockCheckSequenceRefresh,
-		BaseFee:              txnbuild.MinBaseFee,
+		Keypair:         minionKeypair.(*keypair.Full),
+		BotAccount:      botAccount,
+		BotKeypair:      botKeypair.(*keypair.Full),
+		Network:         "Test SDF Network ; September 2015",
+		StartingBalance: "10000.00",
+		BaseFee:         txnbuild.MinBaseFee,
+		Dispatcher:      d,
 	}
 	fb := &Bot{Minions: []Minion{minion}}
 
@@ -133,5 +136,5 @@ func TestMinion_CorrectNumberOfTxSubmissions(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	assert.Equal(t, numTests, numTxSubmits)
+	assert.Equal(t, numTests, d.numTxSubmits)
 }

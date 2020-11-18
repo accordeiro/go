@@ -12,13 +12,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFriendbot_Pay(t *testing.T) {
-	mockSubmitTransaction := func(minion *Minion, hclient *horizonclient.Client, tx string) (*hProtocol.Transaction, error) {
-		// Instead of submitting the tx, we emulate a success.
-		txSuccess := hProtocol.Transaction{EnvelopeXdr: tx, Successful: true}
-		return &txSuccess, nil
-	}
+type FBTestMockMinionDispatcher struct{}
 
+func (m *FBTestMockMinionDispatcher) SubmitTransaction(minion *Minion, hclient *horizonclient.Client, tx string) (*hProtocol.Transaction, error) {
+	// Instead of submitting the tx, we emulate a success.
+	txSuccess := hProtocol.Transaction{EnvelopeXdr: tx, Successful: true}
+	return &txSuccess, nil
+}
+
+func (m *FBTestMockMinionDispatcher) CheckSequenceRefresh(minion *Minion, hclient *horizonclient.Client) error {
+	return checkSequenceRefresh(minion, hclient)
+}
+
+func TestFriendbot_Pay(t *testing.T) {
 	// Public key: GD25B4QI6KWVDWXDW25CIM7EKR6A6PBSWE2RCNSAC4NJQDQJXZJYMMKR
 	botSeed := "SCWNLYELENPBXN46FHYXETT5LJCYBZD5VUQQVW4KZPHFO2YTQJUWT4D5"
 	botKeypair, err := keypair.Parse(botSeed)
@@ -34,19 +40,19 @@ func TestFriendbot_Pay(t *testing.T) {
 		return
 	}
 
+	d := &FBTestMockMinionDispatcher{}
 	minion := Minion{
 		Account: Account{
 			AccountID: minionKeypair.Address(),
 			Sequence:  1,
 		},
-		Keypair:              minionKeypair.(*keypair.Full),
-		BotAccount:           botAccount,
-		BotKeypair:           botKeypair.(*keypair.Full),
-		Network:              "Test SDF Network ; September 2015",
-		StartingBalance:      "10000.00",
-		SubmitTransaction:    mockSubmitTransaction,
-		CheckSequenceRefresh: CheckSequenceRefresh,
-		BaseFee:              txnbuild.MinBaseFee,
+		Keypair:         minionKeypair.(*keypair.Full),
+		BotAccount:      botAccount,
+		BotKeypair:      botKeypair.(*keypair.Full),
+		Network:         "Test SDF Network ; September 2015",
+		StartingBalance: "10000.00",
+		Dispatcher:      d,
+		BaseFee:         txnbuild.MinBaseFee,
 	}
 	fb := &Bot{Minions: []Minion{minion}}
 

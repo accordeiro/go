@@ -5,7 +5,6 @@ import (
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	hProtocol "github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/txnbuild"
 )
@@ -24,19 +23,42 @@ type Minion struct {
 	Network         string
 	StartingBalance string
 	BaseFee         int64
-
-	// Mockable functions
-	SubmitTransaction    func(minion *Minion, hclient *horizonclient.Client, tx string) (*hProtocol.Transaction, error)
-	CheckSequenceRefresh func(minion *Minion, hclient *horizonclient.Client) error
+	Dispatcher      MinionDispatcher
 
 	// Uninitialized.
 	forceRefreshSequence bool
 }
 
+// NewMinion ...
+func NewMinion(
+	a Account,
+	kp *keypair.Full,
+	botAccount txnbuild.Account,
+	botKeypair *keypair.Full,
+	hclient *horizonclient.Client,
+	network string,
+	startingBalance string,
+	baseFee int64,
+) Minion {
+	d := &BasicMinionDispatcher{}
+	return Minion{
+		a,
+		kp,
+		botAccount,
+		botKeypair,
+		hclient,
+		network,
+		startingBalance,
+		baseFee,
+		d,
+		false,
+	}
+}
+
 // Run reads a payment destination address and an output channel. It attempts
 // to pay that address and submits the result to the channel.
 func (minion *Minion) Run(destAddress string, resultChan chan SubmitResult) {
-	err := minion.CheckSequenceRefresh(minion, minion.Horizon)
+	err := minion.Dispatcher.CheckSequenceRefresh(minion, minion.Horizon)
 	if err != nil {
 		resultChan <- SubmitResult{
 			maybeTransactionSuccess: nil,
@@ -52,48 +74,11 @@ func (minion *Minion) Run(destAddress string, resultChan chan SubmitResult) {
 		}
 		return
 	}
-	succ, err := minion.SubmitTransaction(minion, minion.Horizon, txStr)
+	succ, err := minion.Dispatcher.SubmitTransaction(minion, minion.Horizon, txStr)
 	resultChan <- SubmitResult{
 		maybeTransactionSuccess: succ,
 		maybeErr:                errors.Wrap(err, "submitting tx to minion"),
 	}
-}
-
-// SubmitTransaction should be passed to the Minion.
-func SubmitTransaction(minion *Minion, hclient *horizonclient.Client, tx string) (*hProtocol.Transaction, error) {
-	result, err := hclient.SubmitTransactionXDR(tx)
-	if err != nil {
-		errStr := "submitting tx to horizon"
-		switch e := err.(type) {
-		case *horizonclient.Error:
-			minion.checkHandleBadSequence(e)
-			resStr, resErr := e.ResultString()
-			if resErr != nil {
-				errStr += ": error getting horizon error code: " + resErr.Error()
-			} else if resStr == createAccountAlreadyExistXDR {
-				return nil, errors.Wrap(ErrAccountExists, errStr)
-			} else {
-				errStr += ": horizon error string: " + resStr
-			}
-			return nil, errors.New(errStr)
-		}
-		return nil, errors.Wrap(err, errStr)
-	}
-	return &result, nil
-}
-
-// CheckSequenceRefresh establishes the minion's initial sequence number, if needed.
-// This should also be passed to the minion.
-func CheckSequenceRefresh(minion *Minion, hclient *horizonclient.Client) error {
-	if minion.Account.Sequence != 0 && !minion.forceRefreshSequence {
-		return nil
-	}
-	err := minion.Account.RefreshSequenceNumber(hclient)
-	if err != nil {
-		return errors.Wrap(err, "refreshing minion seqnum")
-	}
-	minion.forceRefreshSequence = false
-	return nil
 }
 
 func (minion *Minion) checkHandleBadSequence(err *horizonclient.Error) {
